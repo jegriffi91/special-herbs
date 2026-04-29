@@ -6,6 +6,12 @@ created: 2026-04-28
 related-docs:
   - architecture/ADR-0001-substrate-as-artifact-contract.md
   - architecture/ADR-0002-separate-repo-from-consumers.md
+  - architecture/ADR-0003-training-and-schedule-ownership.md
+  - operations/cross-repo-coordination.md
+  - design/special-herbs-formats-api.md
+  - design/resilience-and-subsystem-isolation.md
+  - research/special-herbs-formats-design.md
+  - research/vol-1-fda-ac-feasibility.md
 related-repos:
   - https://github.com/jegriffi91/King-Geedorah (initial consumer)
 ---
@@ -33,7 +39,7 @@ Volume numbers are append-only. A failed Vol. 1 still consumes the "Vol. 1" slot
 All four required before any substrate code work begins:
 
 - [ ] King Geedorah Phase 10 settle gate closed (target ~2026-05-05)
-- [ ] King Geedorah Phase 1.2 RLAIF strategy-scoped routing landed
+- [ ] King Geedorah Phase 11.2 Strategy-Scoped Signal Routing landed
 - [ ] King Geedorah Phase 14.0 non-schema infra in dry-run on Polymarket / Kalshi (already shipped via PR #18, #19, #21)
 - [ ] Operator has read 30+ papers across Areas 1 and 4 research directions
 
@@ -106,7 +112,7 @@ The substrate is self-justified by KG at this point; second-consumer investment 
 
 | Substrate Phase | Requires KG State |
 |---|---|
-| Phase 0 preconditions | KG Phase 10 settle + KG Phase 1.2 RLAIF routing landed |
+| Phase 0 preconditions | KG Phase 10 settle + KG Phase 11.2 Strategy-Scoped Signal Routing landed |
 | Phase 1 (Vol. 1) | KG Phase 13.1 RLAIF Pipeline Validation passed |
 | Phase 1 measurement | KG Phase 12.1 Golden Dataset Regression Suite operational |
 | Phase 1 consumer integration | KG `moat_fda_equity_catalyst.yaml` deployed |
@@ -118,7 +124,7 @@ The substrate is self-justified by KG at this point; second-consumer investment 
 
 1. **Base model.** Qwen vs. Llama vs. mixed. Defer until Phase 1 design begins; the choice may differ per area.
 2. **LoRA training framework.** Unsloth (already used by KG) vs. native PyTorch + PEFT vs. MLX. Likely Unsloth for cross-repo consistency with KG's training pipeline.
-3. **Artifact registry.** Local filesystem with manifests (simplest) vs. a model registry service (Hugging Face Hub private, MLflow, Weights & Biases). Defer until Vol. 2 — Vol. 1 can ship with local manifests.
+3. **Artifact distribution.** The manifest *format* is locked: Pydantic JSON + safetensors + detached Ed25519 signature, packaged as `special-herbs-formats` (see [`design/special-herbs-formats-api.md`](design/special-herbs-formats-api.md) for the design and [`research/special-herbs-formats-design.md`](research/special-herbs-formats-design.md) for the literature triangulation). What remains open is the *distribution* mechanism: local filesystem (Vol. 1 default) vs. GitHub Releases vs. S3 / R2 vs. Hugging Face Hub. Defer until Vol. 2; Vol. 1 ships local FS + manifests.
 4. **External publication of artifacts.** Probably not — features are alpha. Re-evaluate if a research-collaboration opportunity surfaces.
 5. **Catastrophic-forgetting policy.** Inherit KG's RLAIF guardrails; adapt for substrate's different reward signal shape (information value vs. trade outcome).
 
@@ -135,9 +141,29 @@ The substrate is self-justified by KG at this point; second-consumer investment 
 
 ## See Also
 
-- [`architecture/ADR-0001-substrate-as-artifact-contract.md`](architecture/ADR-0001-substrate-as-artifact-contract.md) — the binding architectural law
-- [`architecture/ADR-0002-separate-repo-from-consumers.md`](architecture/ADR-0002-separate-repo-from-consumers.md) — repo-separation rationale
-- King Geedorah `docs/ROADMAP.md` — consumer-side phases, including the Phase 13.1 dependency
-- King Geedorah `docs/exploration/area-1-agentic-information-synthesis.md` — Area 1 architecture detail
-- King Geedorah `docs/exploration/area-4-cross-domain-signal-networks.md` — Area 4 architecture detail
+### Architecture (binding)
+
+- [`architecture/ADR-0001-substrate-as-artifact-contract.md`](architecture/ADR-0001-substrate-as-artifact-contract.md) — substrate-as-artifact contract; the eight foundational rules
+- [`architecture/ADR-0002-separate-repo-from-consumers.md`](architecture/ADR-0002-separate-repo-from-consumers.md) — filesystem-level separation from consumer repos
+- [`architecture/ADR-0003-training-and-schedule-ownership.md`](architecture/ADR-0003-training-and-schedule-ownership.md) — training pipeline + schedule ownership boundaries
+
+### Operations
+
+- [`operations/cross-repo-coordination.md`](operations/cross-repo-coordination.md) — KG ↔ substrate handoff protocol; release sequence; postmortem flow
+
+### Design (substrate-internal)
+
+- [`design/special-herbs-formats-api.md`](design/special-herbs-formats-api.md) — companion package's API + manifest schema (Phase 0 deliverable C)
+- [`design/resilience-and-subsystem-isolation.md`](design/resilience-and-subsystem-isolation.md) — testing / backtest / tape / logging / PLV design
+
+### Research synthesis
+
+- [`research/vol-1-fda-ac-feasibility.md`](research/vol-1-fda-ac-feasibility.md) — Vol. 1 prompt-only baseline + LoRA feasibility from a 3-source Gemini DR triangulation
+- [`research/special-herbs-formats-design.md`](research/special-herbs-formats-design.md) — manifest format + signing literature triangulation
 - Source synthesis: `~/.claude/research_logs/2026-04-28_112632_kg-moat-substrate-selection/`
+
+### Related repos
+
+- King Geedorah `docs/ROADMAP.md` — consumer-side phases, including the Phase 13.1 dependency
+- King Geedorah `docs/exploration/area-1-agentic-information-synthesis.md` — Area 1 architecture detail (will migrate per Phase 0 deliverable D)
+- King Geedorah `docs/exploration/area-4-cross-domain-signal-networks.md` — Area 4 architecture detail (will migrate per Phase 0 deliverable D)

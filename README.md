@@ -30,7 +30,13 @@ Outputs are **artifacts at rest**, never live services. Consumers load specific 
 
 ## Architectural principles (locked)
 
-See [docs/architecture/ADR-0001-substrate-as-artifact-contract.md](docs/architecture/ADR-0001-substrate-as-artifact-contract.md) for the binding architectural law. Briefly:
+Three ADRs establish the substrate's binding architectural contract; all three are co-equal foundational law:
+
+- [ADR-0001](docs/architecture/ADR-0001-substrate-as-artifact-contract.md) — substrate-as-artifact contract (eight rules; see below).
+- [ADR-0002](docs/architecture/ADR-0002-separate-repo-from-consumers.md) — filesystem-level separation from consumer repos.
+- [ADR-0003](docs/architecture/ADR-0003-training-and-schedule-ownership.md) — training pipeline + schedule ownership boundaries.
+
+The eight rules from ADR-0001, briefly:
 
 1. Consumers pin specific artifact versions (SHA-tagged) — never live-fetch.
 2. No runtime API between substrate and consumers.
