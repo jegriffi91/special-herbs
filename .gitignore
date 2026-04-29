@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+
+# Environments
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+.aider*
+
+# Local data — never committed
+data/
+artifacts/
+*.db
+*.sqlite
+*.sqlite3
+
+# LoRA adapter weights — released as separate artifacts, not in repo
+adapters/
+*.safetensors
+*.bin
+*.pt
+*.pth
+
+# Knowledge graph snapshots — released as separate artifacts
+kg_snapshots/
+*.kgsnap
+
+# Correlation matrices
+correlation_matrices/
+
+# Training data — sensitive
+training_data/
+*.jsonl
+
+# Eval reports
+eval_reports/
+reports/
+
+# Compiled DSPy artifacts
+.dspy_cache/
+
+# Claude Code workspace
+.claude/worktrees/
+.claude/research_logs/
