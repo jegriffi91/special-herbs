@@ -171,7 +171,7 @@ Tests / lints to add as code lands:
 
 These are aspirational; tooling will be added as code lands (Phase 0 deliverable E covers the lint scaffolding). For now, this ADR is the convention; reviewers enforce it.
 
-## References
+## See Also
 
 - [ADR-0001](ADR-0001-substrate-as-artifact-contract.md) — Substrate-as-Artifact Consumer Contract (the artifact-side boundary).
 - [ADR-0002](ADR-0002-separate-repo-from-consumers.md) — Special Herbs Lives in a Separate Repository from Consumer Systems (the filesystem boundary).
