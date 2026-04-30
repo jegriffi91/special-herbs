@@ -43,6 +43,14 @@ All four required before any substrate code work begins:
 - [ ] King Geedorah Phase 14.0 non-schema infra in dry-run on Polymarket / Kalshi (already shipped via PR #18, #19, #21)
 - [ ] Operator has read 30+ papers across Areas 1 and 4 research directions
 
+### Action — 2026-05-05 settle-gate check
+
+On 2026-05-05 (or the first business day on/after), run the KG settle-gate query documented in [`CLAUDE.md`](../CLAUDE.md) §"KG settle-gate quick check (7-day window)" and act on the result:
+
+- **Empty result** → no settle-gate breaches in the trailing 7-day window. Tick the Phase 10 box above and commit the change with a message of the form `docs: tick Phase 10 settle-gate precondition (clean 7-day window 2026-04-29..2026-05-05)`.
+- **Non-empty result** → record the breaches in the commit body, leave the Phase 10 box unchecked, and re-evaluate the target date by reading KG's `docs/ROADMAP.md` Phase 10 status. The settle gate is a *trailing* signal — a single fresh breach within the window pushes the precondition out at least 7 days.
+- **Either way** → the Phase 11.2, Phase 14.0, and 30+ papers boxes are independent of this query; do not touch them in the same commit.
+
 **During Phase 0:** design documents, ADRs, repo scaffold, and reading. No production code.
 
 **Phase 0 exit criterion:** all four boxes checked. Kick off Vol. 1 design work.
