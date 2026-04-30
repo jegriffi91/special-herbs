@@ -108,7 +108,7 @@ The Area 1 and Area 4 architecture docs currently live in King Geedorah at `docs
 
 - The choice of `git submodule` / `git subtree` / `pip install` for cross-repo dependencies is deferred to whenever that integration is actually needed (likely Vol. 1 release).
 
-## References
+## See Also
 
 - ADR-0001 — the architectural law this ADR makes filesystem-enforced.
 - King Geedorah `docs/ROADMAP.md` — consumer-side roadmap; references this repo for the substrate side.

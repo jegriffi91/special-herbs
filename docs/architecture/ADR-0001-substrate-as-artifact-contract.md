@@ -154,7 +154,7 @@ Tests / lints that should fail-loudly if this ADR is violated:
 
 These are aspirational; tooling will be added as the substrate codebase grows. For now, this ADR is the convention; reviewers enforce it.
 
-## References
+## See Also
 
 - King Geedorah `docs/ROADMAP.md` — the consumer side; see Architectural Principles section.
 - Source synthesis: `~/.claude/research_logs/2026-04-28_112632_kg-moat-substrate-selection/CONSOLIDATED_ROADMAP_DRAFT.md` — Decision #3 resolution rationale.
