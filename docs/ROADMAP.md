@@ -8,10 +8,12 @@ related-docs:
   - architecture/ADR-0002-separate-repo-from-consumers.md
   - architecture/ADR-0003-training-and-schedule-ownership.md
   - operations/cross-repo-coordination.md
+  - operations/kg-migration-plan.md
   - design/special-herbs-formats-api.md
   - design/resilience-and-subsystem-isolation.md
   - research/special-herbs-formats-design.md
   - research/vol-1-fda-ac-feasibility.md
+  - research/paper-queue.md
 related-repos:
   - https://github.com/jegriffi91/King-Geedorah (initial consumer)
 ---
@@ -158,6 +160,7 @@ The substrate is self-justified by KG at this point; second-consumer investment 
 ### Operations
 
 - [`operations/cross-repo-coordination.md`](operations/cross-repo-coordination.md) — KG ↔ substrate handoff protocol; release sequence; postmortem flow
+- [`operations/kg-migration-plan.md`](operations/kg-migration-plan.md) — per-doc migration verdict for KG `docs/exploration/` Area 1 / Area 4 material + ADR-0003 boundary audit (Phase 0 deliverable D)
 
 ### Design (substrate-internal)
 
@@ -166,6 +169,7 @@ The substrate is self-justified by KG at this point; second-consumer investment 
 
 ### Research synthesis
 
+- [`research/paper-queue.md`](research/paper-queue.md) — Phase 0 reading queue, 71 verified entries across Areas 1 & 4 (Phase 0 deliverable A)
 - [`research/vol-1-fda-ac-feasibility.md`](research/vol-1-fda-ac-feasibility.md) — Vol. 1 prompt-only baseline + LoRA feasibility from a 3-source Gemini DR triangulation
 - [`research/special-herbs-formats-design.md`](research/special-herbs-formats-design.md) — manifest format + signing literature triangulation
 - Source synthesis: `~/.claude/research_logs/2026-04-28_112632_kg-moat-substrate-selection/`
@@ -173,5 +177,5 @@ The substrate is self-justified by KG at this point; second-consumer investment 
 ### Related repos
 
 - King Geedorah `docs/ROADMAP.md` — consumer-side phases, including the Phase 13.1 dependency
-- King Geedorah `docs/exploration/area-1-agentic-information-synthesis.md` — Area 1 architecture detail (will migrate per Phase 0 deliverable D)
-- King Geedorah `docs/exploration/area-4-cross-domain-signal-networks.md` — Area 4 architecture detail (will migrate per Phase 0 deliverable D)
+- King Geedorah `docs/exploration/area-1-agentic-information-synthesis.md` — Area 1 architecture detail; migration plan in [`operations/kg-migration-plan.md`](operations/kg-migration-plan.md) §1, executes post-KG-Phase-13.1
+- King Geedorah `docs/exploration/area-4-cross-domain-signal-networks.md` — Area 4 architecture detail; migration plan in [`operations/kg-migration-plan.md`](operations/kg-migration-plan.md) §1, executes post-KG-Phase-13.1

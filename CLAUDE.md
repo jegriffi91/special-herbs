@@ -28,10 +28,10 @@ Phase 0 *exit* (kicks off Vol. 1 design) additionally requires KG Phase 11.2 Str
 
 All design / research only:
 
-- **A.** Paper queue (`docs/research/paper-queue.md`) — 30+ papers across Areas 1 + 4 research directions.
+- **A.** Paper queue ([`docs/research/paper-queue.md`](docs/research/paper-queue.md)) — 30+ papers across Areas 1 + 4 research directions. ✅ Initial draft complete (2026-04-30) — 71 verified entries (38 Area 1 / 33 Area 4); operator clears the precondition by marking ≥30 entries `read` plus a synthesis tying each Area to Vol. 1 / Vol. 2 design decisions.
 - **B.** Vol. 1 FDA briefing MVA design doc (`docs/design/vol-1-fda-briefing-mva.md`). Cannot start until KG Phase 12.1 Golden Dataset Regression Suite is operational so the measurement harness has something to bind to.
 - **C.** `special-herbs-formats` API sketch ([docs/design/special-herbs-formats-api.md](docs/design/special-herbs-formats-api.md)). ✅ Initial design complete (2026-04-29) — see also [docs/research/special-herbs-formats-design.md](docs/research/special-herbs-formats-design.md) for the literature triangulation.
-- **D.** KG migration plan for Area 1 / Area 4 docs currently at `~/dev/king-geedorah/docs/exploration/`, plus topology / schedule boundary audit per [ADR-0003](docs/architecture/ADR-0003-training-and-schedule-ownership.md) — what stays in KG, what migrates here, what gets duplicated, and which KG-side training/scheduling references need substrate-side equivalents.
+- **D.** KG migration plan for Area 1 / Area 4 docs currently at `~/dev/king-geedorah/docs/exploration/`, plus topology / schedule boundary audit per [ADR-0003](docs/architecture/ADR-0003-training-and-schedule-ownership.md) — what stays in KG, what migrates here, what gets duplicated, and which KG-side training/scheduling references need substrate-side equivalents. ✅ Initial draft complete (2026-04-30) — see [docs/operations/kg-migration-plan.md](docs/operations/kg-migration-plan.md). Migration itself executes post-KG-Phase-13.1 (~late August 2026).
 - **E.** CI / pre-commit / tooling skeleton (no test code yet — ruff config, pre-commit config, ADR template).
 - **F.** This file + [AGENTS.md](./AGENTS.md) + [docs/operations/cross-repo-coordination.md](docs/operations/cross-repo-coordination.md). ✅ Initial draft complete (2026-04-28).
 
