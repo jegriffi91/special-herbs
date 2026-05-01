@@ -61,6 +61,8 @@ Resolution:
 2. **Operator decides** whether to push a KG-side ROADMAP update or to revise the substrate-side reference.
 3. **Document the resolution** in the substrate's deliverable so future readers see the alignment.
 
+Active drift items are tracked in [`kg-migration-plan.md`](kg-migration-plan.md) §7 — at present the only operator-blocking item is the YAML name drift (`moat_fda_equity_catalyst.yaml` vs `regulatory_event_contracts.yaml`), recommended for resolution when KG ships Phase 14A.4.
+
 ## Schedule Isolation
 
 Each project's scheduler is sovereign per [ADR-0003](../architecture/ADR-0003-training-and-schedule-ownership.md). KG runs its weekend training cron + settle-gate watchdog on its own PM2 stack. Substrate runs its per-volume training cycles on its own cadence. Neither schedule fires jobs in the other repo, reads the other repo's runtime state, or gates on the other repo's metrics.
