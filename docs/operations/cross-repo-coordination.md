@@ -75,6 +75,34 @@ Specifically:
 
 When workloads coexist on the same M2 Ultra (today's reality), coordination is operator-driven (manual scheduling, calendar-level decisions), not automated cross-process IPC. See [ADR-0003 §6](../architecture/ADR-0003-training-and-schedule-ownership.md) for process-isolation details.
 
+## Hardware Coexistence: LoRA Training and Live MLX Inference
+
+**Empirical constraint** (KG conversation `2264751e-42dc-43d9-a6ce-43cb5356a502`, 2026-04-30 — Gemini Deep Research Max on Apple Silicon concurrent inference):
+
+> Apple's MLX framework is **not thread-safe** for concurrent generation. All MLX operations run on a single scheduler thread protected by `mlx_io_lock`. If a LoRA training script invokes its own `mlx.eval()` / generation loops while the KG inference server is decoding tokens, the Metal driver's `tryCoalescingPreviousComputeCommandEncoder` race condition triggers `SIGSEGV` and crashes both processes.
+>
+> Memory bandwidth is **not** the binding constraint (KG's `gpt-oss-120b` MoE uses ~25% of the M2 Ultra's 800 GB/s ceiling at 40 tok/s). The contention is in **Metal command queue management**, not in memory bandwidth or compute capacity.
+
+**Implication for substrate Vol. 1 LoRA training schedule:**
+
+1. **LoRA training cycles MUST run market-closed-only.** Specifically: weekends and overnight US-equity-market-closed windows. This is non-negotiable; any concurrency with live KG inference will crash both pipelines.
+2. **The KG inference server must be quiesced or paused** during substrate training cycles that exercise MLX generation paths (e.g., evaluation runs over the LoRA-adapted model). Weight-loading and gradient-only steps are safer but still subject to the same Metal command-queue contention if MLX is involved.
+3. **Operator coordination point**: substrate's training cron must check KG's market-state file (or equivalent calendar-aware gate) before launching cycles. KG side does not auto-yield; the substrate cycle must defer.
+4. **Hardware refresh (M5 Ultra, 2026)** does not resolve this. The MLX threading constraint is software-level, not silicon-level. Workload separation remains mandatory regardless of generation.
+
+**Specific scheduling rules:**
+
+| Window | KG state | Substrate training? |
+|---|---|---|
+| Weekday 06:00–13:30 PT (pre-market + RTH) | Live inference, high event rate | ❌ Forbidden |
+| Weekday 13:30–17:00 PT (post-market + after-hours) | Live inference, lower event rate | ❌ Forbidden (KG still active) |
+| Weekday 17:00–06:00 PT (overnight) | Reduced inference (counterfactual backfill, EOD reports) | ⚠️ Permitted only if substrate cycle does not invoke MLX generation; weight-loading + gradient-only OK |
+| Weekend (Friday 17:00 PT → Monday 06:00 PT) | Minimal inference (weekend training disabled per KG ROADMAP Phase 10) | ✅ Preferred window |
+
+The substrate's per-volume training cycle should default to **weekend-only** unless a specific cycle is gradient-only and tightly latency-bounded (in which case overnight weekday is acceptable, but the operator must verify KG inference is idle before launch).
+
+**Cross-link:** KG `docs/ROADMAP.md` Phase 10.9 documents the embedding-sidecar architecture (`fastembed` on E-cores) that introduces a third concurrent workload alongside the LLM. Substrate Vol. 1 therefore competes against TWO live workloads, not one. Schedule conservatively.
+
 ## Why No Automated Trigger
 
 [ADR-0001](../architecture/ADR-0001-substrate-as-artifact-contract.md) §3 forbids runtime APIs between substrate and consumer. [ADR-0003](../architecture/ADR-0003-training-and-schedule-ownership.md) §2 extends this to schedulers. The operator-as-integration-point is a deliberate consequence: it forces a human-readable handoff that lives in `git` history and the ROADMAP, rather than in webhook logs or a shared queue. Slow, intentional, auditable.
