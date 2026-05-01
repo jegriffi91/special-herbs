@@ -38,12 +38,35 @@ Three ADRs establish the substrate's binding architectural contract; all three a
 
 The eight rules from ADR-0001, briefly:
 
-1. Consumers pin specific artifact versions (SHA-tagged) — never live-fetch.
-2. No runtime API between substrate and consumers.
-3. No shared databases.
-4. Consumers can fall back to operating without substrate artifacts (graceful degradation).
-5. Substrate has no knowledge of which consumers exist or what they do with artifacts.
-6. LLM is feature extractor only, never decision-maker. Decision-making belongs to consumers.
+1. **Versioned and immutable artifacts.** Every artifact carries a SHA-tagged signed manifest; once published, never retroactively edited.
+2. **Consumers pin specific versions.** Pin SHA + semver at startup; floating selectors (`latest`, `>=1.0`) are forbidden in production.
+3. **No runtime API between substrate and consumers.** No HTTP, gRPC, IPC, webhooks, shared message buses.
+4. **No shared databases.** Same upstream source means duplicate ingestion, not shared connection.
+5. **Graceful consumer degradation.** Consumers must function (with reduced capability) when artifacts are unavailable, corrupted, or fail SHA verification.
+6. **Substrate has no knowledge of consumers.** No consumer names, no consumer-keyed conditionals, no consumer-specific tests in substrate code.
+7. **LLM is feature extractor only, never decision-maker.** Substrate emits features; consumers' deterministic scorers decide.
+8. **Cross-repo separation enforced at the file system.** Substrate's `pyproject.toml` MUST NOT depend on any consumer codebase; only `special-herbs-formats` is a permitted shared package.
+
+## Architecture
+
+```mermaid
+flowchart TD
+    S["Substrate\n(Special Herbs)\n---\nLoRA training pipeline\nKG snapshot builder\nCorrelation matrix builder"]
+    A["Artifact\n---\nSigned manifest + content files\nSHA-tagged · immutable\nversioned (semver)"]
+    C["Consumer\n(e.g. King Geedorah)\n---\nPins version + SHA at startup\nVerifies SHA on load\nDegrades gracefully if missing"]
+
+    S -->|"releases artifact\n(artifact-only contract)"| A
+    A -->|"consumer loads at startup\n(pin: version + sha256)"| C
+
+    S -.->|"FORBIDDEN — ADR-0001 §3\nHTTP / gRPC / IPC"| C
+    C -.->|"FORBIDDEN — ADR-0001 §3\nwebhook callback"| S
+    S -.->|"FORBIDDEN — ADR-0001 §3\nshared DB / message bus"| C
+
+    classDef forbidden stroke:#c00,stroke-dasharray:5 5,color:#c00
+    class S,C forbidden
+```
+
+*Artifact-only consumer contract — see [ADR-0001](docs/architecture/ADR-0001-substrate-as-artifact-contract.md) §3 for forbidden runtime couplings.*
 
 ## Roadmap
 

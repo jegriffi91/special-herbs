@@ -47,11 +47,38 @@ All four required before any substrate code work begins:
 
 ### Action — 2026-05-05 settle-gate check
 
-On 2026-05-05 (or the first business day on/after), run the KG settle-gate query documented in [`CLAUDE.md`](../CLAUDE.md) §"KG settle-gate quick check (7-day window)" and act on the result:
+On 2026-05-05 (or the first business day on/after):
 
-- **Empty result** → no settle-gate breaches in the trailing 7-day window. Tick the Phase 10 box above and commit the change with a message of the form `docs: tick Phase 10 settle-gate precondition (clean 7-day window 2026-04-29..2026-05-05)`.
-- **Non-empty result** → record the breaches in the commit body, leave the Phase 10 box unchecked, and re-evaluate the target date by reading KG's `docs/ROADMAP.md` Phase 10 status. The settle gate is a *trailing* signal — a single fresh breach within the window pushes the precondition out at least 7 days.
-- **Either way** → the Phase 11.2, Phase 14.0, and 30+ papers boxes are independent of this query; do not touch them in the same commit.
+**1. Pre-flight — confirm the KG breach DB exists.** `sqlite3` silently creates an empty file at a missing path, so an empty result from a missing DB is indistinguishable from a clean settle:
+
+```bash
+ls -la /Users/jamesgriffin/dev/king-geedorah/data/quality_gate_breaches.db
+```
+
+If the file is absent, do NOT tick any box; diagnose KG-side first.
+
+**2. Run the canonical query** documented in [`CLAUDE.md`](../CLAUDE.md) §"KG settle-gate quick check (7-day window)".
+
+**3. Empty result** → before ticking the Phase 10 box, also:
+
+  - **(a) Suppressed-breach sanity check.** Confirm the suppressed count is in line with the 2026-04-30 baseline of 45 rather than spiking — a sudden suppression jump with a clean unsuppressed result means someone may have suppressed their way to clean:
+
+    ```bash
+    sqlite3 /Users/jamesgriffin/dev/king-geedorah/data/quality_gate_breaches.db \
+      "SELECT COUNT(*) FROM quality_gate_breaches \
+       WHERE evaluated_at >= datetime('now', '-7 days') \
+       AND settle_gate_suppressed = 1;"
+    ```
+
+  - **(b) KG ROADMAP secondary verification.** Read KG `docs/ROADMAP.md` §"Phase 10 — Settle gate" and confirm the four `[ ]` boxes are now `[x]`. If they aren't, do NOT tick the substrate box until KG's own Phase 10 reflects completion.
+
+  If both (a) and (b) pass, tick the Phase 10 box above and commit with a message of the form `docs: tick Phase 10 settle-gate precondition (clean 7-day window 2026-04-29..2026-05-05)`.
+
+**4. Non-empty result** → leave the Phase 10 box unchecked. Add a dated note directly below the Phase 10 checkbox line, format `  - 2026-05-05 check: N unsuppressed breaches; dominant: <metric>/<severity>; re-evaluate 2026-MM-DD`. Commit that note alone with a message of the form `docs: record Phase 10 settle-gate check result (N breaches, re-evaluate 2026-MM-DD)`. The settle gate is a *trailing* signal — a single fresh breach within the window pushes the precondition out at least 7 days.
+
+**Either way** — the Phase 11.2, Phase 14.0, and 30+ papers boxes are independent of this query; do not touch them in the same commit.
+
+**Baseline established 2026-04-30:** trailing 7-day query returned 22 unsuppressed breaches (3 SEV-1, dominated by `scout_parse_rate` SEV-1 ×23). 30-day weekly trend 561 → 1,655 → 60. Settle clock restarted 2026-04-21; gate appears on track but not yet clean as of the baseline date.
 
 **During Phase 0:** design documents, ADRs, repo scaffold, and reading. No production code.
 
