@@ -260,7 +260,7 @@ One question genuinely requires operator decision before it can be closed:
 
 ---
 
-## References
+## See Also
 
 - [ADR-0001](../architecture/ADR-0001-substrate-as-artifact-contract.md) — eight rules, especially §6 (no consumer enumeration in substrate code).
 - [ADR-0002](../architecture/ADR-0002-separate-repo-from-consumers.md) — §"Migration Path for Existing Substrate Documentation" (the trigger).
