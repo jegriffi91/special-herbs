@@ -154,6 +154,16 @@ Tests / lints that should fail-loudly if this ADR is violated:
 
 These are aspirational; tooling will be added as the substrate codebase grows. For now, this ADR is the convention; reviewers enforce it.
 
+## Empirical Validation
+
+Added 2026-05-04. The artifact-only contract — particularly Rule 1 (versioned/immutable artifacts), Rule 6 (substrate has no knowledge of consumers), and Rule 7 (LLM as feature extractor only) — was originally justified by architectural reasoning. A March-2026 empirical anchor reinforces the contract from the training-pipeline side as well:
+
+- **[VERIFIED]** *Decoupling Reasoning and Reward: A Modular Approach* (medRxiv:10.64898/2026.03.12.26348283v1, March 2026). Researchers evaluated unified vs modular SFT+GRPO adapters on Qwen2.5 0.5B-7B base models. **The unified adapter exhibited catastrophic training collapse between steps 500-900 at the 0.5B scale.** The modular configuration — separately trained adapters operating on disjoint reward signals — was resilient.
+
+The substrate-side implication: any future temptation to *co-train* the substrate's adapters with a consumer's adapters (because they share base-model parameters, or because a "shared prior pass" looks operationally simpler) carries a known failure mode at small parameter counts. The artifact-only contract prevents this by construction — adapters are released as separate immutable artifacts; the consumer composes them at inference, not during training.
+
+This anchor was surfaced in King Geedorah's `docs/design/slippage-measurement-phase-a.md` §10.1 and applies symmetrically here: KG's RLAIF Commander adapter (trained on trade-outcome rewards) and substrate's Vol. 1 FDA-briefing adapter (trained on information-extraction Brier scores) MUST be structurally separate LoRAs, not co-trained. ADR-0001 already mandates this as architecture; the medRxiv finding adds an empirical-failure-mode reason on top of the architectural reason.
+
 ## See Also
 
 - King Geedorah `docs/ROADMAP.md` — the consumer side; see Architectural Principles section.

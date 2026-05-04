@@ -19,10 +19,10 @@ This repo MUST NOT import King Geedorah code, and vice versa. Per [ADR-0001](doc
 
 Pre-Phase-0. **No code work** until both:
 
-1. KG Phase 10 settle gate clears (~2026-05-05).
+1. KG Phase 10 settle gate clears (target 2026-05-10 — 10 consecutive calendar days clean, rebased 2026-05-01).
 2. KG Phase 13.1 RLAIF Pipeline Validation lands (~late August 2026).
 
-Phase 0 *exit* (kicks off Vol. 1 design) additionally requires KG Phase 11.2 Strategy-Scoped Signal Routing landed and 30+ papers read across Areas 1 + 4. See [docs/ROADMAP.md](docs/ROADMAP.md) for Volume-by-Volume phasing and decision gates.
+KG Phase 11.2 Strategy-Scoped Signal Routing already cleared (shipped 2026-04-21); the 30+ papers milestone moved to Phase 1 / RLAIF integration concurrent (decided 2026-05-03). Phase 0 exit now requires only the two gates above plus Phase 14.0 dry-run already complete. See [docs/ROADMAP.md](docs/ROADMAP.md) for Volume-by-Volume phasing and decision gates.
 
 ## Phase 0 Deliverable Menu
 
