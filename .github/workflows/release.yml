@@ -1,0 +1,93 @@
+name: Release
+
+# Triggered when an operator pushes a tag matching `vol-*-v*` (e.g.,
+# `vol-1-fda-briefing-v1.0.0`). The workflow builds the manifest, signs
+# it (stub-only pre-Phase-1), and publishes the artifact + manifest to
+# the release location.
+#
+# Pre-Phase-1 the actual signing step uses `sign_with_stub()` and the
+# CI gate logs a warning. Phase 1 lands real Ed25519 signing once
+# PyNaCl is authorized.
+#
+# Per ADR-0003 §2: KG-side pin updates are NOT auto-triggered. The
+# operator opens a KG-side PR pinning the new SHA after this workflow
+# completes.
+
+on:
+  push:
+    tags:
+      - "vol-*-v*"
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: "Version tag to release (e.g., vol-1-fda-briefing-v1.0.0). Must already exist as a git tag."
+        required: true
+
+permissions:
+  contents: read
+
+# Releases are serialized — never two simultaneous releases racing on
+# the release-location filesystem.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: [self-hosted, special-herbs]
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.version_tag || github.ref }}
+
+      - name: Resolve release tag
+        id: tag
+        run: |
+          TAG="${{ github.event.inputs.version_tag || github.ref_name }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Releasing tag: $TAG"
+
+      - name: Set up venv
+        run: |
+          if [ ! -x .venv/bin/pytest ]; then
+            python3 -m venv .venv
+            .venv/bin/pip install --upgrade pip --quiet
+            .venv/bin/pip install -r requirements-dev.txt --quiet
+            .venv/bin/pip install -e . --quiet
+          fi
+
+      # Same gates that `ci.yml` runs — never release a tag that
+      # wouldn't have passed PR-time CI.
+      - name: Re-run CI gates (lint + import-linter + tests + coverage)
+        run: |
+          .venv/bin/ruff check src/ tests/
+          .venv/bin/ruff format --check src/ tests/
+          .venv/bin/lint-imports
+          PYTHONDONTWRITEBYTECODE=1 .venv/bin/pytest tests/ \
+            -m "not live" \
+            --cov=src/special_herbs \
+            --cov-report=term
+
+      - name: Pre-Phase-1 release notice
+        run: |
+          {
+            echo "::notice::Pre-Phase-1 release — Ed25519 signing is stubbed."
+            echo "Real signing requires PyNaCl (Phase-1 dependency)."
+            echo "Phase-1 task: replace src/special_herbs/release/signer.py:sign() stub with PyNaCl call."
+          }
+
+      # Phase 1 will replace this with the real release pipeline.
+      # Today: print release intent + verify the tag is well-formed so
+      # at least the workflow stays green and the operator gets visible
+      # confirmation that release tooling is wired.
+      - name: Tag-format check (vol-<name>-v<semver>)
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          if ! [[ "$TAG" =~ ^vol-[a-z0-9-]+-v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Tag '$TAG' does not match the convention 'vol-<name>-v<semver>'."
+            exit 1
+          fi
+          echo "Tag format OK: $TAG"

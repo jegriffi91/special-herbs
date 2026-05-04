@@ -1,0 +1,9 @@
+# Production runtime dependencies for the substrate.
+#
+# Pre-Phase-1: empty. Each Volume's training pipeline adds only what
+# that volume actually requires. Substrate runtime is intentionally
+# lean — no frontier API SDKs (per AGENTS.md "Cost Discipline"); LoRA
+# training stack lands at Vol. 1 build time.
+#
+# When dependencies arrive, pin EXACT versions (X.Y.Z, no `>=` or
+# `~=`). Reproducibility is non-negotiable per ADR-0001 §1.

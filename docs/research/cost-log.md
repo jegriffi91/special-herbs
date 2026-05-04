@@ -11,12 +11,12 @@ related-docs:
 
 # Frontier-API Spend Log
 
-> Per [AGENTS.md](../../AGENTS.md) §"Cost Discipline — Frontier APIs Are RLAIF Teachers Only": frontier APIs (Anthropic / OpenAI / Google) MUST NOT appear in the inference path. They are used only as RLAIF teachers during training cycles or for bounded upfront research. Each cycle's API spend is logged here with the volume / artifact ID it produced, so total cost is auditable per release and stays within the per-cycle target.
+> Per [AGENTS.md](../../AGENTS.md) §"Cost Discipline — Frontier APIs Are RLAIF Teachers Only": frontier APIs (Anthropic / OpenAI / Google) MUST NOT appear in the substrate's artifact-runtime path. They are used only as RLAIF teachers during training cycles or for bounded upfront research. Consumer-side runtime frontier use (e.g., KG calling frontier APIs at runtime to extract structured features feeding into a substrate-produced LoRA) is out of scope for this log — see [ADR-0003](../architecture/ADR-0003-training-and-schedule-ownership.md) §1 and [`../operations/cross-repo-coordination.md`](../operations/cross-repo-coordination.md) §"Volume Design Phase". Each cycle's API spend is logged here with the volume / artifact ID it produced, so total cost is auditable per release and stays within the per-cycle target.
 
 ## Targets
 
 - **Per-cycle target**: <$50 USD for any single LoRA training cycle (including teacher grading).
-- **Inference path**: $0 — frontier APIs MUST NOT appear in the inference hot path.
+- **Substrate artifact-runtime path**: $0 — frontier APIs MUST NOT appear in the substrate-produced LoRA's runtime hot path. (Consumer-side runtime frontier spend is a consumer-owned cost line, tracked separately by the consumer.)
 - **Research / DR sweeps**: separately tracked; bounded by per-sweep approval per AGENTS.md.
 
 ## Spend log

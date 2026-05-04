@@ -427,16 +427,16 @@ Phase 0 deliverable E (CI / pre-commit / tooling skeleton) will encode these as 
 - **Tape freshness:** custom check that `tests/fixtures/tape/<*>/.last-regenerated` is within 90 days.
 - **No secrets in source/logs:** standard pre-commit hooks (`detect-secrets`, custom regex scan).
 - **No network in unit tests:** pytest plugin (`pytest-socket --disable-socket`); marked exceptions for L3 tape-replay tests.
-- **Conversation-ID in commit messages:** standard pre-commit hook (per [AGENTS.md](../../AGENTS.md)).
 - **PLV report signed:** PLV step that asserts every prior step's report has a valid signature before PLV completes.
 
 ## 12. Promotion Candidates for ADR-0004
 
-Three pieces of this design are durable enough that they should probably be locked in an ADR-0004 once first code lands and we have empirical confirmation they work:
+Four pieces of this design are durable enough that they should probably be locked in an ADR-0004 once first code lands and we have empirical confirmation they work:
 
 1. **Subsystem import directionality (§2).** Same level of foundationalness as ADR-0001's eight rules — once locked, breaking it requires an ADR amendment. Currently a design doc rule.
 2. **PLV mandate (§8).** No artifact ever published without PLV pass. Same level of mandate as ADR-0001's manifest signing.
 3. **Determinism contracts (§5).** Per-subsystem determinism declarations are a rule that everything in the substrate is bound by; currently a design doc rule.
+4. **Narrow-scorer-on-structured-features pattern (Vol. 1 input contract).** The substrate's LoRAs operate on already-structured features extracted by the consumer's runtime layer (typically frontier APIs); substrate does not own end-to-end raw-text-to-decision pipelines. Captured 2026-05-03 from a KG-side architecture conversation; documented operationally in [`../operations/cross-repo-coordination.md`](../operations/cross-repo-coordination.md) §"Volume Design Phase". Promote after Vol. 1 traffic and metrics confirm a LoRA was actually justified for the narrow scoring task — locking the pattern before empirical validation risks codifying the wrong frame.
 
 The other sections (testing layers, tape mechanics, logging conventions, anti-patterns) are good engineering practice — recommended, evolving, document-not-mandate. They live here in `docs/design/` rather than ADR.
 

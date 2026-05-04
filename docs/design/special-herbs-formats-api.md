@@ -369,5 +369,5 @@ These are real but not blocking the C deliverable:
 - [ADR-0001](../architecture/ADR-0001-substrate-as-artifact-contract.md) — required manifest fields, no-runtime-API rule, graceful degradation
 - [ADR-0002](../architecture/ADR-0002-separate-repo-from-consumers.md) — companion-package allowance
 - [ROADMAP.md](../ROADMAP.md) — Phase 0 deliverable C, Open Decision #3 (artifact registry)
-- [AGENTS.md](../../AGENTS.md) — cost discipline, Conversation-ID commit mandate, citation hygiene
+- [AGENTS.md](../../AGENTS.md) — cost discipline, citation hygiene
 - Full Gemini DR session: `~/.claude/research_logs/2026-04-28_221649_manifest-format-and-signing-vol-1/`

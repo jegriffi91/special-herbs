@@ -1,0 +1,27 @@
+# Dev / test dependencies. Mirrors KG's stack (pytest + bandit +
+# coverage + pre-commit) plus import-linter (Phase 0 deliverable E.2)
+# and pytest-socket (no-network unit-test enforcement).
+#
+# Versions pinned to current stable releases. Bump deliberately.
+
+# Test framework
+pytest==8.3.3
+pytest-asyncio==0.24.0
+pytest-cov==5.0.0
+pytest-socket==0.7.0
+hypothesis==6.115.5
+
+# Linting / formatting (pre-commit pulls its own pinned ruff; these
+# match for direct CLI use)
+ruff==0.6.9
+
+# Security scanning — matches KG bandit usage. Pinned to 1.9.4 because
+# 1.7.10 errors on Python 3.14 (the bandit AST visitor was updated in
+# 1.8+ for newer Python ASTs).
+bandit==1.9.4
+
+# Subsystem-boundary enforcement (Phase 0 E.2)
+import-linter==2.1
+
+# Pre-commit hook framework
+pre-commit==4.0.1
