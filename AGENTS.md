@@ -115,17 +115,19 @@ The substrate codebase MUST NOT import from any consumer codebase, and vice vers
 
 ## Cost Discipline — Frontier APIs Are RLAIF Teachers Only
 
-**Frontier APIs (Anthropic / OpenAI / Google) MUST NOT appear in the inference path.** They are used only as RLAIF teachers during weekend training cycles.
+**Frontier APIs (Anthropic / OpenAI / Google) MUST NOT appear in the substrate's artifact-runtime path.** They are used only as RLAIF teachers during weekend training cycles, or for bounded upfront research.
+
+**Scope.** This rule binds the substrate. A consumer's runtime use of frontier APIs — for example, KG calling Claude at runtime to extract structured features that feed into a substrate-produced LoRA — is a consumer-owned cost and design decision per [ADR-0003](docs/architecture/ADR-0003-training-and-schedule-ownership.md) §1. The substrate has no opinion on consumer inference topology and does not budget for consumer-side frontier spend.
 
 ### Rules
 
-1. **Inference is local.** All inference-time model calls go to the local M2 Ultra Qwen / Llama base models. No frontier API in the inference hot path.
+1. **Substrate-produced artifacts are runtime-local.** A LoRA loaded by any consumer makes no frontier API calls — runtime is fully self-contained on the local M2 Ultra Qwen / Llama base + the LoRA weights. Substrate-side training cycles may invoke frontier APIs only as RLAIF teachers, never as the inference model being graded.
 2. **RLAIF teacher use is bounded.** Frontier API spend per LoRA training cycle (including teacher grading) targets <$50.
 3. **Track every cycle.** Each training cycle's API spend is logged in `docs/research/cost-log.md` with the volume / artifact ID it produced.
 
 ### Why This Matters
 
-Solo retail capital ($2k starting, $5-10k ceiling by month 24 conditional on audited results). Inference-path frontier API spend would exceed the consumer's own trade size on any meaningful signal volume. The substrate's value comes from local-model fine-tuning + the architectural moat — not from frontier-API magic at inference time. Cost-log tracking creates pressure to keep cycles efficient and prevents silent runaway spend.
+Solo retail capital ($2k starting, $5-10k ceiling by month 24 conditional on audited results). If substrate-produced LoRAs made frontier API calls at runtime during consumer trade decisions, that spend would exceed the consumer's own trade size on any meaningful signal volume — and would also re-couple substrate availability to consumer execution, violating [ADR-0001](docs/architecture/ADR-0001-substrate-as-artifact-contract.md) §3. The substrate's value comes from local-model fine-tuning + the architectural moat, not from frontier-API magic at substrate runtime. Cost-log tracking creates pressure to keep training cycles efficient and prevents silent runaway spend during the substrate's own training and research work.
 
 ---
 
@@ -150,18 +152,6 @@ Confirmed and citable:
 ### Why This Matters
 
 Citation drift erodes design credibility. A design doc that references a hallucinated statistic propagates the error into downstream decisions; a future operator (or future Claude) treating the citation as evidence makes worse choices than one that knows the evidence is missing.
-
----
-
-## Conversation-ID Commit Mandate
-
-All commits MUST include the AI contributor's conversation ID in the commit message body, format: `[Conversation-ID: <uuid>]`.
-
-This rule mirrors King Geedorah's [AGENTS.md](../king-geedorah/AGENTS.md) §"Git Commit Conversation Context Mandate".
-
-### Why This Matters
-
-The Conversation-ID is the cryptographic link between code changes and the architectural reasoning that justified them. Without it, "why did this change land?" is unanswerable months later, and the substrate's design history becomes opaque.
 
 ---
 

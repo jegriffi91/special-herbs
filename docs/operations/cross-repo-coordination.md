@@ -31,6 +31,21 @@ Specific KG → Substrate unblocking events:
 | Phase 13.1 RLAIF Pipeline Validation passes | Phase 1 (Vol. 1 build) can start | ~late 2026-08 |
 | Phase 14A `moat_fda_equity_catalyst.yaml` deployed | Vol. 1 has a live consumer | post-Vol. 1 release |
 
+## Volume Design Phase: Lock the LoRA Input Contract to KG's Feature-Extraction Output
+
+Substrate Volumes producing LoRA adapters must lock the LoRA's **input contract** to the structured-feature schema that the consuming KG strategy actually emits at runtime. Per [ADR-0001](../architecture/ADR-0001-substrate-as-artifact-contract.md) §7 the substrate produces narrow scorers operating on already-structured features; the upstream extraction (raw text → structured schema) is owned by the consumer's runtime, typically using frontier APIs on the consumer side. This is the LLM-as-a-Feature-Extractor split: frontier handles unstructured-to-structured on the consumer side, substrate's LoRA handles narrow directional scoring on the structured features it receives. Empirical basis: `~/.claude/research_logs/2026-04-27_113300_kg-2yr-foundation-strategy/pro_angle2-llm-effectiveness.md` (Gemini Pro Deep Research, 2026-04-27) — frontier wins on FDA briefing / 10-K / causal synthesis; LoRA wins on narrow ternary classification of already-structured features.
+
+Operator-driven handshake at the start of any Volume that ships a LoRA:
+
+1. **Identify the consuming KG strategy** (Vol. 1 → `moat_fda_equity_catalyst.yaml`, etc.).
+2. **Read KG's runtime feature-extraction output schema** for that strategy — the Pydantic class / JSON-schema / whatever KG actually emits from its extraction step.
+3. **Pin substrate training-data input shape to that schema.** Training pairs are `(structured_feature_dict, resolved_outcome)`, not `(raw_briefing_pdf, resolved_outcome)`. The no-synthetic-data rule still holds — structured features must come from KG-side extractions over real historical raw text, not from substrate-fabricated examples.
+4. **Document any drift** (KG's schema changed; substrate's training data was assembled against an older shape) in the Volume's design doc and reconcile before training fires.
+
+This is **not** a runtime API per [ADR-0001](../architecture/ADR-0001-substrate-as-artifact-contract.md) §3. The schema is a data shape copied (not imported) into substrate's training pipeline; substrate does not query KG's extractor at training time, and KG's extractor does not depend on substrate at runtime. The handshake is operator-driven, design-time only.
+
+If KG-side feature extraction does not yet exist for the catalyst class the Volume targets, the Volume cannot enter training. The operator either (a) waits for KG to build the extractor, (b) defers the Volume, or (c) rescopes the Volume to target a catalyst class KG already extracts.
+
 ## When the Substrate Releases a Volume
 
 1. **PLV (Pre-Launch Validation) must pass.** Run the full PLV gate sequence per [`../design/resilience-and-subsystem-isolation.md` §8](../design/resilience-and-subsystem-isolation.md). All steps PASS, signed PLV report stored alongside the release. PLV failure halts the release; operator decides whether to fix and re-run, abort the volume, or amend the cycle config. **No exceptions** — there is no path from training output to published volume that bypasses PLV.

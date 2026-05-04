@@ -89,7 +89,6 @@ The operator is the integration point; there is no automated cross-repo trigger.
 
 ## Commit Rules
 
-- All commits MUST include `[Conversation-ID: <uuid>]` in the message body. See [AGENTS.md](./AGENTS.md) §"Conversation-ID Commit Mandate".
 - Never commit without explicit operator permission.
 - Never skip pre-commit hooks (no `--no-verify`).
 - Never push to `main` directly. PR flow only — match KG's worktree → PR → squash-merge convention.

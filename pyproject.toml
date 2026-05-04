@@ -6,6 +6,14 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
 
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["special_herbs*"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"
@@ -21,7 +29,192 @@ select = ["E", "F", "I", "W", "UP", "B", "SIM", "C4"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+# Test files often nest `with` blocks to demonstrate context-manager
+# behavior; SIM117 (combine into one `with`) would obscure intent.
+"tests/**/*.py" = ["B011", "SIM117"]
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = [
+    "--strict-markers",
+    "--tb=short",
+    "-ra",
+    # No-network default — unit tests must not touch the network.
+    # Integration / tape tests opt back in via @pytest.mark.enable_socket.
+    "--disable-socket",
+    "--allow-unix-socket",
+]
+markers = [
+    "unit: Unit test — fast, no network, no I/O outside tmp_path",
+    "integration: Integration test crossing subsystem boundaries",
+    "tape: Tape-replay test using recorded consumer-side production scenarios",
+    "use_tape(path): Bind a test to a specific tape file under tests/fixtures/tape/",
+    "live: Live-inference test requiring local M2 Ultra (Bodega/MLX) — auto-skipped if unavailable",
+    "slow: Test that runs >1s; excluded from default pre-commit run",
+]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning:setuptools.*",
+    # pytest-asyncio internals trip several asyncio deprecation paths
+    # under Python 3.14 (iscoroutinefunction, get_event_loop_policy,
+    # etc.). Upstream issue; not our code to fix. Re-evaluate on the
+    # next pytest-asyncio release that targets 3.14.
+    "ignore::DeprecationWarning:pytest_asyncio.*",
+    "ignore::DeprecationWarning:asyncio.*",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["src/special_herbs"]
+omit = [
+    "tests/*",
+    "*/__init__.py",
+    ".venv/*",
+]
+
+[tool.coverage.report]
+# Coverage gate: 80% line coverage. Reasoning:
+# - Library-style modules (formats/, observability/, tape/) are pure
+#   functions and naturally hit 90%+. They pull the average up.
+# - Pipeline modules (training/, eval/, release/, plv/, ingest/)
+#   orchestrate side effects and naturally land in the 70-80% range
+#   when exercised primarily via tape-replay integration tests.
+# - 80% is the canonical "good engineering" mark — tight enough to
+#   catch dead code and force test-first discipline on pure-function
+#   code, loose enough to allow pipeline scaffolding to land before
+#   exhaustive integration coverage exists.
+# - Current substrate coverage is ~98% (fully tested foundation), so
+#   the 80% gate gives ~18pp of buffer for early Phase 1 development.
+# Bump to 85 once Phase 1 production code stabilizes; do NOT push to
+# 90+ — that punishes legitimate orchestration scaffolding.
+fail_under = 80
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+    "except ImportError:",
+    "if TYPE_CHECKING:",
+]
+show_missing = true
+skip_covered = false
+
+[tool.bandit]
+targets = ["src/special_herbs"]
+exclude_dirs = ["tests", ".venv", "build", "dist"]
+
+# ─────────────────────────────────────────────────────────────────────
+# Subsystem-boundary contracts (import-linter)
+# ─────────────────────────────────────────────────────────────────────
+# Encodes the import-direction table from
+# docs/design/resilience-and-subsystem-isolation.md §2. Run via:
+#   .venv/bin/lint-imports
+# Also enforced by tests/integration/test_subsystem_boundaries.py.
+
+[tool.importlinter]
+root_packages = ["special_herbs"]
+include_external_packages = false
+
+# eval.backtest is read-only over released artifacts — per resilience
+# §2 it may import only `formats`. This contract enforces that:
+# nothing else in the substrate is allowed. The substrate's hardest-
+# to-debug failure (eval miscalibration) is isolated from training-
+# pipeline bugs by this rule.
+[[tool.importlinter.contracts]]
+name = "eval.backtest may import only formats (read-only contract)"
+type = "forbidden"
+source_modules = ["special_herbs.eval.backtest"]
+forbidden_modules = [
+    "special_herbs.training",
+    "special_herbs.ingest",
+    "special_herbs.release",
+    "special_herbs.tape",
+    "special_herbs.plv",
+    "special_herbs.eval.harness",
+    "special_herbs.observability",
+]
+
+# release consumes training's output FILES, not its Python code. Any
+# import of training from release is an architectural smell.
+[[tool.importlinter.contracts]]
+name = "release must not import training (file-level consumption only)"
+type = "forbidden"
+source_modules = ["special_herbs.release"]
+forbidden_modules = ["special_herbs.training"]
+
+# plv is the top-level orchestrator — nothing imports it.
+[[tool.importlinter.contracts]]
+name = "Nothing imports plv (top-level orchestrator)"
+type = "forbidden"
+source_modules = [
+    "special_herbs.ingest",
+    "special_herbs.training",
+    "special_herbs.eval",
+    "special_herbs.release",
+    "special_herbs.formats",
+    "special_herbs.tape",
+]
+forbidden_modules = ["special_herbs.plv"]
+
+# Leaf packages — no internal project dependencies.
+[[tool.importlinter.contracts]]
+name = "ingest is a leaf — no internal dependencies"
+type = "forbidden"
+source_modules = ["special_herbs.ingest"]
+forbidden_modules = [
+    "special_herbs.training",
+    "special_herbs.eval",
+    "special_herbs.release",
+    "special_herbs.formats",
+    "special_herbs.tape",
+    "special_herbs.plv",
+]
+
+[[tool.importlinter.contracts]]
+name = "formats is a leaf — no internal dependencies"
+type = "forbidden"
+source_modules = ["special_herbs.formats"]
+forbidden_modules = [
+    "special_herbs.ingest",
+    "special_herbs.training",
+    "special_herbs.eval",
+    "special_herbs.release",
+    "special_herbs.tape",
+    "special_herbs.plv",
+]
+
+[[tool.importlinter.contracts]]
+name = "tape is a leaf — no internal dependencies"
+type = "forbidden"
+source_modules = ["special_herbs.tape"]
+forbidden_modules = [
+    "special_herbs.ingest",
+    "special_herbs.training",
+    "special_herbs.eval",
+    "special_herbs.release",
+    "special_herbs.formats",
+    "special_herbs.plv",
+    "special_herbs.observability",
+]
+
+[[tool.importlinter.contracts]]
+name = "observability is a leaf — no internal dependencies"
+type = "forbidden"
+source_modules = ["special_herbs.observability"]
+forbidden_modules = [
+    "special_herbs.ingest",
+    "special_herbs.training",
+    "special_herbs.eval",
+    "special_herbs.release",
+    "special_herbs.formats",
+    "special_herbs.tape",
+    "special_herbs.plv",
+]

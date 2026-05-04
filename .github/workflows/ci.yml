@@ -1,0 +1,103 @@
+name: CI
+
+# Pre-merge gate — every PR + every push to main runs lint, security,
+# and the full test suite (excluding live-inference markers). Mirrors
+# KG's quality-gate-regression.yml pattern, adapted for the substrate.
+#
+# Runs on the self-hosted Mac Studio runner labelled
+# `[self-hosted, special-herbs]`. The same physical machine hosts KG's
+# `[self-hosted, kg]` runner; separate labels prevent cross-project
+# job collisions and let either project quiesce independently.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Substrate jobs serialize per-branch — a second push to the same
+# branch cancels the in-progress run. PRs and main get separate groups
+# so they don't fight each other.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: [self-hosted, special-herbs]
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history for merge-base check
+
+      # Block stale PRs — branch must be up to date with main before
+      # the CI gate can pass. Mirrors KG's pattern.
+      - name: Require branch up to date with main
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin main
+          MERGE_BASE=$(git merge-base HEAD origin/main)
+          MAIN_HEAD=$(git rev-parse origin/main)
+          if [ "$MERGE_BASE" != "$MAIN_HEAD" ]; then
+            echo "::error::Branch is behind main (merge-base $MERGE_BASE != main $MAIN_HEAD). Rebase or merge main before this PR can land."
+            exit 1
+          fi
+
+      - name: Set up venv (idempotent)
+        run: |
+          if [ ! -x .venv/bin/pytest ]; then
+            python3 -m venv .venv
+            .venv/bin/pip install --upgrade pip --quiet
+            .venv/bin/pip install -r requirements-dev.txt --quiet
+            .venv/bin/pip install -e . --quiet
+          fi
+
+      - name: Lint (ruff)
+        id: lint
+        run: |
+          .venv/bin/ruff check src/ tests/
+          .venv/bin/ruff format --check src/ tests/
+
+      - name: Subsystem boundary contracts (import-linter)
+        id: imports
+        run: .venv/bin/lint-imports
+
+      - name: Security audit (bandit)
+        id: security
+        run: |
+          if [ -d src/special_herbs ] && find src/special_herbs -name "*.py" -not -name "__init__.py" | head -1 | grep -q .; then
+            .venv/bin/bandit -r src/special_herbs -ll -q
+          else
+            echo "No production code yet (pre-Phase-1) — bandit skipped."
+          fi
+
+      - name: Tests + coverage
+        id: tests
+        run: |
+          PYTHONDONTWRITEBYTECODE=1 .venv/bin/pytest tests/ \
+            -m "not live" \
+            --cov=src/special_herbs \
+            --cov-report=term \
+            --cov-report=xml:coverage.xml \
+            2>&1 | tee /tmp/test_output.txt
+          grep -E "passed|failed|error|no tests" /tmp/test_output.txt | tail -1 > /tmp/test_summary.txt || true
+
+      - name: Job summary
+        if: always()
+        run: |
+          TEST_SUMMARY=$(cat /tmp/test_summary.txt 2>/dev/null || echo "—")
+          {
+            echo "## CI Results"
+            echo ""
+            echo "| Step | Status |"
+            echo "|------|--------|"
+            echo "| Lint (ruff) | ${{ steps.lint.outcome }} |"
+            echo "| Subsystem boundaries (import-linter) | ${{ steps.imports.outcome }} |"
+            echo "| Security (bandit) | ${{ steps.security.outcome }} |"
+            echo "| Tests | ${{ steps.tests.outcome }} \`$TEST_SUMMARY\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
