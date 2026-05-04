@@ -6,7 +6,7 @@ Research substrate that produces versioned artifacts (LoRA adapters, knowledge g
 
 ## Status
 
-**Pre-Phase-0.** Repo scaffold only. No code work begins until the consumer system (King Geedorah) clears its Phase 10 settle gate (~2026-05-05) and Phase 13.1 RLAIF Pipeline Validation lands (~late August 2026). Until then this repo holds design documents and ADRs.
+**Pre-Phase-0.** Repo scaffold only. No code work begins until the consumer system (King Geedorah) clears its Phase 10 settle gate (target 2026-05-10) and Phase 13.1 RLAIF Pipeline Validation lands (~late August 2026). Until then this repo holds design documents and ADRs.
 
 ## What this is
 

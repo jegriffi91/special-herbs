@@ -25,8 +25,8 @@ Specific KG → Substrate unblocking events:
 
 | KG event | Unblocks substrate | Earliest expected |
 |---|---|---|
-| Phase 10 settle gate clears | Phase 0 → can start design work | ~2026-05-05 |
-| Phase 11.2 Strategy-Scoped Signal Routing landed | Phase 0 exit precondition | ~2026-06 |
+| Phase 10 settle gate clears | Phase 0 → can start design work | 2026-05-10 (rebased 2026-05-01 to 10 consecutive calendar days clean) |
+| Phase 11.2 Strategy-Scoped Signal Routing landed | Phase 0 exit precondition | ✅ shipped 2026-04-21 (KG commit `6f8906f`) |
 | Phase 12.1 Golden Dataset Regression Suite operational | Phase 0 deliverable B (Vol. 1 MVA design) can start | ~2026-07 |
 | Phase 13.1 RLAIF Pipeline Validation passes | Phase 1 (Vol. 1 build) can start | ~late 2026-08 |
 | Phase 14A `moat_fda_equity_catalyst.yaml` deployed | Vol. 1 has a live consumer | post-Vol. 1 release |

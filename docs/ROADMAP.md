@@ -40,15 +40,15 @@ Volume numbers are append-only. A failed Vol. 1 still consumes the "Vol. 1" slot
 
 Three required before any substrate code work begins:
 
-- [ ] King Geedorah Phase 10 settle gate closed (target ~2026-05-05)
-- [ ] King Geedorah Phase 11.2 Strategy-Scoped Signal Routing landed
+- [ ] King Geedorah Phase 10 settle gate closed (target 2026-05-10 — rebased 2026-05-01 to 10 consecutive calendar days clean; the earlier "~2026-05-05" anchor was the prior market-day target)
+- [x] King Geedorah Phase 11.2 Strategy-Scoped Signal Routing landed (shipped 2026-04-21, KG commit `6f8906f`)
 - [ ] King Geedorah Phase 14.0 non-schema infra in dry-run on Polymarket / Kalshi (already shipped via PR #18, #19, #21)
 
 **Paper-reading milestone (≥30 papers across Areas 1 + 4) deferred to Phase 1.** Decided 2026-05-03: papers will inform the RLAIF integration design when Phase 1 spins up, rather than gating Phase 0 exit. Reading concurrent with early Phase 1 design (~late August 2026); the synthesis tying Areas 1 + 4 to Vol. 1 / Vol. 2 design decisions becomes a Phase 1 prerequisite, not a Phase 0 one.
 
-### Action — 2026-05-05 settle-gate check
+### Action — 2026-05-10 settle-gate check
 
-On 2026-05-05 (or the first business day on/after):
+On 2026-05-10 (or the first business day on/after):
 
 **1. Pre-flight — confirm the KG breach DB exists.** `sqlite3` silently creates an empty file at a missing path, so an empty result from a missing DB is indistinguishable from a clean settle:
 
@@ -73,11 +73,11 @@ If the file is absent, do NOT tick any box; diagnose KG-side first.
 
   - **(b) KG ROADMAP secondary verification.** Read KG `docs/ROADMAP.md` §"Phase 10 — Settle gate" and confirm the four `[ ]` boxes are now `[x]`. If they aren't, do NOT tick the substrate box until KG's own Phase 10 reflects completion.
 
-  If both (a) and (b) pass, tick the Phase 10 box above and commit with a message of the form `docs: tick Phase 10 settle-gate precondition (clean 7-day window 2026-04-29..2026-05-05)`.
+  If both (a) and (b) pass, tick the Phase 10 box above and commit with a message of the form `docs: tick Phase 10 settle-gate precondition (clean 7-day window 2026-05-04..2026-05-10)`.
 
-**4. Non-empty result** → leave the Phase 10 box unchecked. Add a dated note directly below the Phase 10 checkbox line, format `  - 2026-05-05 check: N unsuppressed breaches; dominant: <metric>/<severity>; re-evaluate 2026-MM-DD`. Commit that note alone with a message of the form `docs: record Phase 10 settle-gate check result (N breaches, re-evaluate 2026-MM-DD)`. The settle gate is a *trailing* signal — a single fresh breach within the window pushes the precondition out at least 7 days.
+**4. Non-empty result** → leave the Phase 10 box unchecked. Add a dated note directly below the Phase 10 checkbox line, format `  - 2026-05-10 check: N unsuppressed breaches; dominant: <metric>/<severity>; re-evaluate 2026-MM-DD`. Commit that note alone with a message of the form `docs: record Phase 10 settle-gate check result (N breaches, re-evaluate 2026-MM-DD)`. The settle gate is a *trailing* signal — a single fresh breach within the window pushes the precondition out at least 7 days.
 
-**Either way** — the Phase 11.2 and Phase 14.0 boxes are independent of this query; do not touch them in the same commit. (The 30+ papers milestone moved to Phase 1 per the deferral note above.)
+**Either way** — the Phase 14.0 box is independent of this query; do not touch it in the same commit. (Phase 11.2 already cleared 2026-04-21; the 30+ papers milestone moved to Phase 1 per the deferral note above.)
 
 **Baseline established 2026-04-30:** trailing 7-day query returned 22 unsuppressed breaches (3 SEV-1, dominated by `scout_parse_rate` SEV-1 ×23). 30-day weekly trend 561 → 1,655 → 60. Settle clock restarted 2026-04-21; gate appears on track but not yet clean as of the baseline date.
 
