@@ -40,7 +40,7 @@ Volume numbers are append-only. A failed Vol. 1 still consumes the "Vol. 1" slot
 
 Three required before any substrate code work begins:
 
-- [ ] King Geedorah Phase 10 settle gate closed (target 2026-05-10 — rebased 2026-05-01 to 10 consecutive calendar days clean; the earlier "~2026-05-05" anchor was the prior market-day target)
+- [x] King Geedorah Phase 10 settle gate closed (operator override 2026-05-05 — see KG ROADMAP §10 override rationale; the original "10 consecutive calendar days clean" criterion was met qualitatively, not literally)
 - [x] King Geedorah Phase 11.2 Strategy-Scoped Signal Routing landed (shipped 2026-04-21, KG commit `6f8906f`)
 - [ ] King Geedorah Phase 14.0 non-schema infra in dry-run on Polymarket / Kalshi (already shipped via PR #18, #19, #21)
 
