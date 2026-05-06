@@ -215,13 +215,34 @@ These don't change with this map but are worth restating since they govern what 
 - Substrate has no knowledge of consumers other than via the artifact contract. The KG-specific routes / strategies / Cloud-CIO behavior described in §3, §4, §6 are documented for the operator's mental model, not as substrate-side dependencies.
 - DOOMBot Gateway is shared infrastructure. Issues filed against DOOMBot from substrate-side need to flag the substrate use case but should expect DOOMBot to optimize for the union of KG, SH, and iOS-client requirements.
 
-## 12. See Also
+## 12. Decisions locked (2026-05-05)
+
+After this doc was drafted, the operator made the following calls during the settlement-day roadmap-review session:
+
+- **§7 — Vol. 1 task shape: Option I** (alternative Commander on FDA briefings).
+  Substrate Vol. 1 = LoRA replacing or augmenting KG's Commander specifically for FDA-briefing catalysts. Input = same raw pdfplumber chunks Commander already consumes (per KG Phase 14A.1 pipeline). Output schema = same Commander-signature schema KG's downstream stack already consumes. No KG-side architectural change required; head-to-head Brier comparison is direct. The substrate-side rewrite of [`cross-repo-coordination.md` §"Volume Design Phase"](../operations/cross-repo-coordination.md) lands in a separate PR (`docs/phase-0-exit`) reframing the handshake around the three-option choice rather than mandating Option II's structured-feature-schema layer.
+- **§6 — Cost reconciliation: Option B** (per-workflow caps inside Gateway).
+  Global $50/month cap stays as the hard ceiling — the $50 is exploratory and not raised until evidence demands it. Substrate's `<$50/cycle` rule remains as documented in [AGENTS.md §"Cost Discipline"](../../AGENTS.md). Per-workflow caps in Gateway are throttles, not allocations. Current spend mix is heavily weighted toward `gemini-deep-research` (operator-side DR sweeps), not KG Cloud CIO; per-workflow allocation reflects this. DOOMBot-side implementation prompt dispatched 2026-05-05.
+- **§8 Q4 — Engine roster: Anthropic added; OpenAI skipped** unless later demand surfaces. Anthropic Messages API + tool-use targeted (same surface Claude Code uses underneath). DOOMBot-side implementation dispatched 2026-05-05 alongside the per-workflow cap work.
+- **§8 Q3 — RLAIF teacher tape sharing**: deferred to Phase 1 implementation. Tapes will live in each repo's `tests/fixtures/tape/teacher/` with disjoint `workflowId` namespaces (`sh-vol-1-teacher` vs `kg-commander-teacher`). Tape regeneration cadence per project (substrate's freshness check is at 90 days; KG's may differ).
+
+### Cross-reference impact on PR #12
+
+[`docs/research/training-recipe-comparative.md`](../research/training-recipe-comparative.md) (PR #12) was scoped against Option II's task shape ("narrow scorer on already-structured features"). Its SFT+ORPO recommendation **still applies** — Option I is also extraction-shaped (pdfplumber chunks → structured Commander output), just without the upstream Pydantic schema layer. PR #12's §7 Open Question 5 ("whether the LLM in Vol. 1 is even doing scoring or just doing extraction") resolves to "alternative Commander" under Option I. No separate amendment to PR #12 is needed; this §12 cross-reference is the canonical resolution.
+
+### What the locked decisions don't yet decide
+
+- **Vol. 1 base model** (Llama / Qwen / Mistral). Out of scope; lands in Vol. 1 design doc (Phase 1 deliverable B).
+- **Whether Vol. 1 fires LoRA training at all** — gated behind the 24-hour prompt-only Brier baseline per the operator's standing memory `vol_1_prompt_only_baseline_first`. If prompt-only clears the gate, Vol. 1 ships as `(prompt-version, base-API, signed manifest)` with no LoRA.
+- **Per-workflow cap exact numbers** — DOOMBot-side discretion within the global $50/month ceiling. Substrate just enumerates the workflowIds it needs and proposes ranges.
+
+## 13. See Also
 
 - [ADR-0001](../architecture/ADR-0001-substrate-as-artifact-contract.md) — substrate-as-artifact contract, particularly §1 (versioned/immutable artifacts), §3 (no runtime API), §6 (substrate has no knowledge of consumers), §7 (LLM as feature extractor only)
 - [ADR-0003](../architecture/ADR-0003-training-and-schedule-ownership.md) — substrate vs consumer training/schedule ownership; particularly §1 topology matrix
-- [docs/operations/cross-repo-coordination.md](../operations/cross-repo-coordination.md) §"Volume Design Phase" — input-contract handshake (NEEDS REVISIT after §7 resolution)
+- [docs/operations/cross-repo-coordination.md](../operations/cross-repo-coordination.md) §"Volume Design Phase" — three-option input-contract handshake (rewritten in `docs/phase-0-exit` PR alongside §12 of this doc)
 - [docs/design/resilience-and-subsystem-isolation.md](./resilience-and-subsystem-isolation.md) §2 (subsystem boundaries), §7 (tape playback), §9 (logging architecture)
-- [docs/research/training-recipe-comparative.md](../research/training-recipe-comparative.md) (PR #12) — Vol. 1 training-recipe comparative; assumes Option II task shape; needs re-read after §7 resolution
+- [docs/research/training-recipe-comparative.md](../research/training-recipe-comparative.md) (PR #12) — Vol. 1 training-recipe comparative; recommendation (SFT+ORPO) holds under Option I per §12 above
 - KG `docs/design/slippage-measurement-phase-a.md` §10.1, §10.2, §12.7.5 — KG-side architecture references
 - KG `docs/ROADMAP.md` §14A.1 — FDA Briefing Document Source; the actual KG-side pipeline this doc maps against
 - DOOMBot `~/dev/doombot/backend-gateway/AGENTS.md` — Gateway routing mandate
