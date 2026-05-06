@@ -31,20 +31,29 @@ Specific KG → Substrate unblocking events:
 | Phase 13.1 RLAIF Pipeline Validation passes | Phase 1 (Vol. 1 build) can start | ~late 2026-08 |
 | Phase 14A `moat_fda_equity_catalyst.yaml` deployed | Vol. 1 has a live consumer | post-Vol. 1 release |
 
-## Volume Design Phase: Lock the LoRA Input Contract to KG's Feature-Extraction Output
+## Volume Design Phase: Lock the LoRA's Input + Output Contracts to the Consuming KG Strategy
 
-Substrate Volumes producing LoRA adapters must lock the LoRA's **input contract** to the structured-feature schema that the consuming KG strategy actually emits at runtime. Per [ADR-0001](../architecture/ADR-0001-substrate-as-artifact-contract.md) §7 the substrate produces narrow scorers operating on already-structured features; the upstream extraction (raw text → structured schema) is owned by the consumer's runtime, typically using frontier APIs on the consumer side. This is the LLM-as-a-Feature-Extractor split: frontier handles unstructured-to-structured on the consumer side, substrate's LoRA handles narrow directional scoring on the structured features it receives. Empirical basis: `~/.claude/research_logs/2026-04-27_113300_kg-2yr-foundation-strategy/pro_angle2-llm-effectiveness.md` (Gemini Pro Deep Research, 2026-04-27) — frontier wins on FDA briefing / 10-K / causal synthesis; LoRA wins on narrow ternary classification of already-structured features.
+Substrate Volumes producing LoRA adapters must lock both the LoRA's **input shape** and **output schema** to the consuming KG strategy's actual runtime pipeline. Three architectural options for any given Volume, mapped against KG's existing infrastructure:
+
+- **Option I — Alternative Commander.** Substrate's LoRA replaces or augments KG's Commander for the catalyst class the Volume targets. Input = same raw text chunks KG's Commander already consumes (e.g., pdfplumber output for FDA briefings, per KG Phase 14A.1). Output = same Commander-signature schema KG's downstream stack already consumes. Head-to-head Brier comparison is direct; no KG-side architectural change required.
+- **Option II — Feature extractor.** Substrate's LoRA inserts a NEW layer between KG's raw-text source and KG's Commander, emitting a Pydantic structured-feature schema that Commander then consumes. Cleaner separation of concerns but requires a KG-side architectural change (Commander rewired to consume structured features instead of raw text).
+- **Option III — Output calibrator.** Substrate's LoRA takes Commander's output as input and recalibrates the probability outputs against historical outcomes. Smallest blast radius but hardest to clear a meaningful Brier-reduction gate when Commander is already calibrated.
+
+Vol. 1 picked **Option I** ([Special-Herbs#14 §13](https://github.com/jegriffi91/Special-Herbs/pull/14), 2026-05-05). Subsequent Volumes pick per-Volume; the Option choice belongs in each Volume's design doc.
+
+Per [ADR-0001](../architecture/ADR-0001-substrate-as-artifact-contract.md) §7 the substrate is a feature extractor / scorer, never a decision-maker — Options I, II, III all satisfy that constraint at different layers of the pipeline. Empirical basis for the LLM-as-a-Feature-Extractor framing: `~/.claude/research_logs/2026-04-27_113300_kg-2yr-foundation-strategy/pro_angle2-llm-effectiveness.md` (Gemini Pro Deep Research, 2026-04-27).
 
 Operator-driven handshake at the start of any Volume that ships a LoRA:
 
 1. **Identify the consuming KG strategy** (Vol. 1 → `moat_fda_equity_catalyst.yaml`, etc.).
-2. **Read KG's runtime feature-extraction output schema** for that strategy — the Pydantic class / JSON-schema / whatever KG actually emits from its extraction step.
-3. **Pin substrate training-data input shape to that schema.** Training pairs are `(structured_feature_dict, resolved_outcome)`, not `(raw_briefing_pdf, resolved_outcome)`. The no-synthetic-data rule still holds — structured features must come from KG-side extractions over real historical raw text, not from substrate-fabricated examples.
-4. **Document any drift** (KG's schema changed; substrate's training data was assembled against an older shape) in the Volume's design doc and reconcile before training fires.
+2. **Pick Option I / II / III** based on KG's actual runtime architecture for that strategy. Default Option I unless KG's existing pipeline already has a structured-feature schema layer (then Option II is natural) or unless the Volume's role is post-Commander recalibration (then Option III).
+3. **Pin substrate training-data input shape to whatever Option implies.** Option I → raw text chunks (the same shape KG's Commander consumes); Option II → KG's structured-feature schema; Option III → `(briefing context, Commander output)` pairs. The no-synthetic-data rule still holds across all options — training data comes from real historical raw text, not substrate-fabricated examples.
+4. **Pin substrate output schema to the consuming KG strategy's expectation.** For Option I this is the Commander-signature schema; for Option II it's the structured-feature schema; for Option III it's the recalibrated probability shape.
+5. **Document any drift** (KG's pipeline shape changed; substrate's training data was assembled against an older shape) in the Volume's design doc and reconcile before training fires.
 
-This is **not** a runtime API per [ADR-0001](../architecture/ADR-0001-substrate-as-artifact-contract.md) §3. The schema is a data shape copied (not imported) into substrate's training pipeline; substrate does not query KG's extractor at training time, and KG's extractor does not depend on substrate at runtime. The handshake is operator-driven, design-time only.
+This is **not** a runtime API per [ADR-0001](../architecture/ADR-0001-substrate-as-artifact-contract.md) §3. The shape is copied (not imported) into substrate's training pipeline; substrate does not query KG at training time, and KG's runtime does not depend on substrate. The handshake is operator-driven, design-time only.
 
-If KG-side feature extraction does not yet exist for the catalyst class the Volume targets, the Volume cannot enter training. The operator either (a) waits for KG to build the extractor, (b) defers the Volume, or (c) rescopes the Volume to target a catalyst class KG already extracts.
+If the chosen Option requires KG-side infrastructure that doesn't yet exist (e.g., Option II against a catalyst class KG hasn't built a feature-extraction layer for), the Volume cannot enter training. The operator either (a) waits for KG to build it, (b) defers the Volume, (c) rescopes the Volume, or (d) picks a different Option that fits KG's actual current architecture.
 
 ## When the Substrate Releases a Volume
 

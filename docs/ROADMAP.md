@@ -40,9 +40,9 @@ Volume numbers are append-only. A failed Vol. 1 still consumes the "Vol. 1" slot
 
 Three required before any substrate code work begins:
 
-- [x] King Geedorah Phase 10 settle gate closed (operator override 2026-05-05 — see KG ROADMAP §10 override rationale; the original "10 consecutive calendar days clean" criterion was met qualitatively, not literally)
+- [x] King Geedorah Phase 10 settle gate closed (operator override 2026-05-05). The settle gate's *purpose* — stabilizing inference before activating multi-strategy isolation, deterministic eval, and lifecycle telemetry — is qualitatively met independent of the calendar-clean criterion: Phase 12.7.1 lifecycle telemetry chain shipped (broker_order_id ↔ decision_id link active), Phase 10.9 dedup redesign Tier 1+2 on main (cluster-and-enrich + admit-and-tag, ε=0.05), dynamic universe screener merged. Remaining hook-vs-DB breach mismatch tracked as a follow-up — not blocking. Pre-flip tightenings landed (KG PRs #114 PM-Scout pulse + scout_parse_rate observation-only + strategy_concentration loosened; #115 PM2 restart-rate as rate-over-window). Override accepted with monitor-and-revert posture. Full rationale in KG `docs/ROADMAP.md` §"Phase 10 — 120B Stabilization & Runtime Hardening".
 - [x] King Geedorah Phase 11.2 Strategy-Scoped Signal Routing landed (shipped 2026-04-21, KG commit `6f8906f`)
-- [ ] King Geedorah Phase 14.0 non-schema infra in dry-run on Polymarket / Kalshi (already shipped via PR #18, #19, #21)
+- [x] King Geedorah Phase 14.0 non-schema infra in dry-run on Polymarket / Kalshi (KG PRs #18 Phase 14.0.2 PredictionMarketProvider, #19 Phase 14.0.8 PM Scout daemon scaffold, #21 Phase 10.8 PREDICTION_MARKET branch — all merged 2026-04-26/27)
 
 **Paper-reading milestone (≥30 papers across Areas 1 + 4) deferred to Phase 1.** Decided 2026-05-03: papers will inform the RLAIF integration design when Phase 1 spins up, rather than gating Phase 0 exit. Reading concurrent with early Phase 1 design (~late August 2026); the synthesis tying Areas 1 + 4 to Vol. 1 / Vol. 2 design decisions becomes a Phase 1 prerequisite, not a Phase 0 one.
 
@@ -85,6 +85,14 @@ If the file is absent, do NOT tick any box; diagnose KG-side first.
 
 **Phase 0 exit criterion:** all three boxes checked. Kick off Vol. 1 design work. (Paper-reading milestone moved to Phase 1 per the deferral note above; not a Phase 0 exit precondition.)
 
+### Phase 0 Exit — 2026-05-05
+
+All three precondition boxes ticked. Phase 0E shipped substrate-side code scaffolding ([Special-Herbs#10](https://github.com/jegriffi91/Special-Herbs/pull/10)) that exceeded the original "tooling skeleton" deliverable spec — formats / observability / release / tape modules with real implementations, 7 import-linter contracts encoding subsystem boundaries from [resilience design §2](design/resilience-and-subsystem-isolation.md), 80% coverage gate, self-hosted CI runner.
+
+Architectural picture for Phase 1 locked in [Special-Herbs#14 §13](https://github.com/jegriffi91/Special-Herbs/pull/14): Vol. 1 task shape = Option I (alternative Commander on FDA briefings), DOOMBot Gateway acknowledged as third architectural component, cost-reconciliation Option B (per-workflow caps) dispatched DOOMBot-side, Anthropic engine targeted for Phase 1 RLAIF teacher path.
+
+Substrate moves from Phase 0 to Phase-1-design-on-deck. Vol. 1 design (deliverable B) remains gated on KG Phase 12.1 Golden Dataset Regression Suite (~July 2026) and KG Phase 13.1 RLAIF Pipeline Validation (~late August 2026). No Vol. 1 production code lands until both KG gates clear.
+
 ---
 
 ## Phase 1 — Vol. 1: Area 1 Minimum Viable Artifact (~3 months post-preconditions)
@@ -95,10 +103,11 @@ If the file is absent, do NOT tick any box; diagnose KG-side first.
 
 **Deliverable:** one fine-tuned LoRA adapter on FDA Advisory Committee briefing documents. Loaded into KG's Gateway alongside KG's own RLAIF-trained adapters via multi-LoRA serving.
 
-**Architecture:**
-- Source: FDA Advisory Committee briefing PDFs (already ingested by KG via `data_ingestion/fda_briefing_source.py`).
-- Training: structured-output extraction task (event metadata, decision likelihood, evidence summary).
-- Format: LoRA adapter (Qwen / Llama base, ~3.6% of base model parameters trained).
+**Architecture (Option I per [Special-Herbs#14](https://github.com/jegriffi91/Special-Herbs/pull/14)):**
+- Source: FDA Advisory Committee briefing PDFs (KG's Phase 14A.1 pipeline ingests via `data_ingestion/fda_briefing_source.py` → `pdfplumber` chunks). Substrate ingests independently per [ADR-0001](architecture/ADR-0001-substrate-as-artifact-contract.md) §4.
+- Task shape: alternative-Commander on raw pdfplumber chunks. Same input shape as KG's Phase 14A.1 Commander pipeline; substrate's LoRA replaces or augments KG's Commander specifically for FDA-briefing catalysts. Output schema matches the consuming strategy's Commander signature so head-to-head Brier comparison is direct.
+- Training: SFT anchor pass (schema adherence) + ORPO calibration pass (Brier reduction) per [training-recipe-comparative.md](research/training-recipe-comparative.md). Gated behind a 24-hour prompt-only Brier baseline — skip the LoRA fire entirely if prompt-only already clears the gate.
+- Format: LoRA adapter (Qwen / Llama / Mistral base TBD, ~3.6% of base model parameters trained).
 - Release: SHA-tagged, signed manifest, semantic version (`special-herbs-vol-1-fda-briefing-vN`).
 
 **Consumer contract** (per [ADR-0001](architecture/ADR-0001-substrate-as-artifact-contract.md)):
