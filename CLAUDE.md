@@ -7,7 +7,7 @@
 - **Project:** Research substrate that produces versioned artifacts (LoRA adapters, KG snapshots, correlation matrices) consumed by trading systems.
 - **Initial consumer:** King Geedorah at `~/dev/king-geedorah`.
 - **Naming:** MF Doom (Metal Fingers) "Special Herbs" beat-tape series, 2003-2007. Substrate produces instrumentals; consumers rap. Each release is a Volume; volume numbers are append-only (a failed Vol. 1 still consumes the slot).
-- **Status:** Pre-Phase-0. Repo holds design documents and ADRs only — no production code.
+- **Status:** Phase 0 exited 2026-05-05. Repo holds ADRs, design documents, and Phase 0E scaffolding code (formats / observability / release / tape modules + tests + import-linter contracts + 80% coverage gate). Phase 1 (Vol. 1 design) gated on KG Phase 12.1 (~July 2026) and KG Phase 13.1 (~late August 2026); no Vol. 1 production code lands until both clear.
 - **Hardware:** Apple M2 Ultra 192GB, no co-location.
 - **Operator:** Solo software architect. Learning quant trading; not a quant. Capital lives on consumer side ($2k starting, $5-10k ceiling by month 24).
 
@@ -17,37 +17,42 @@ This repo MUST NOT import King Geedorah code, and vice versa. Per [ADR-0001](doc
 
 ## Status & Phase Gates
 
-Pre-Phase-0. **No code work** until both:
+Phase 0 exited 2026-05-05. All three precondition boxes ticked: KG Phase 10 settle gate (operator override; full rationale in KG `docs/ROADMAP.md` §"Phase 10"), KG Phase 11.2 Strategy-Scoped Signal Routing (shipped 2026-04-21), KG Phase 14.0 non-schema infra dry-run (KG PRs #18/#19/#21 merged 2026-04-26/27).
 
-1. KG Phase 10 settle gate clears (target 2026-05-10 — 10 consecutive calendar days clean, rebased 2026-05-01).
-2. KG Phase 13.1 RLAIF Pipeline Validation lands (~late August 2026).
+**Phase 1 (Vol. 1 design + build) gated on:**
 
-KG Phase 11.2 Strategy-Scoped Signal Routing already cleared (shipped 2026-04-21); the 30+ papers milestone moved to Phase 1 / RLAIF integration concurrent (decided 2026-05-03). Phase 0 exit now requires only the two gates above plus Phase 14.0 dry-run already complete. See [docs/ROADMAP.md](docs/ROADMAP.md) for Volume-by-Volume phasing and decision gates.
+1. KG Phase 12.1 Golden Dataset Regression Suite operational (~July 2026) — Vol. 1 measurement harness binds to it.
+2. KG Phase 13.1 RLAIF Pipeline Validation lands (~late August 2026) — substrate Vol. 1 build cannot start until then.
 
-## Phase 0 Deliverable Menu
+The 30+ papers milestone moved to Phase 1 (decided 2026-05-03); reading concurrent with Phase 1 design rather than gating Phase 0 exit. Vol. 1 task shape locked as Option I (alternative Commander on FDA briefings) per [Special-Herbs#14 §13](https://github.com/jegriffi91/Special-Herbs/pull/14). See [docs/ROADMAP.md](docs/ROADMAP.md) for Volume-by-Volume phasing and decision gates.
 
-All design / research only:
+## Phase 0 Deliverable Menu (closed 2026-05-05)
 
-- **A.** Paper queue ([`docs/research/paper-queue.md`](docs/research/paper-queue.md)) — 30+ papers across Areas 1 + 4 research directions. ✅ Initial draft complete (2026-04-30) — 71 verified entries (38 Area 1 / 33 Area 4); operator clears the precondition by marking ≥30 entries `read` plus a synthesis tying each Area to Vol. 1 / Vol. 2 design decisions.
-- **B.** Vol. 1 FDA briefing MVA design doc (`docs/design/vol-1-fda-briefing-mva.md`). Cannot start until KG Phase 12.1 Golden Dataset Regression Suite is operational so the measurement harness has something to bind to.
-- **C.** `special-herbs-formats` API sketch ([docs/design/special-herbs-formats-api.md](docs/design/special-herbs-formats-api.md)). ✅ Initial design complete (2026-04-29) — see also [docs/research/special-herbs-formats-design.md](docs/research/special-herbs-formats-design.md) for the literature triangulation.
-- **D.** KG migration plan for Area 1 / Area 4 docs currently at `~/dev/king-geedorah/docs/exploration/`, plus topology / schedule boundary audit per [ADR-0003](docs/architecture/ADR-0003-training-and-schedule-ownership.md) — what stays in KG, what migrates here, what gets duplicated, and which KG-side training/scheduling references need substrate-side equivalents. ✅ Initial draft complete (2026-04-30) — see [docs/operations/kg-migration-plan.md](docs/operations/kg-migration-plan.md). Migration itself executes post-KG-Phase-13.1 (~late August 2026).
-- **E.** CI / pre-commit / tooling skeleton (no test code yet — ruff config, pre-commit config, ADR template).
-- **F.** This file + [AGENTS.md](./AGENTS.md) + [docs/operations/cross-repo-coordination.md](docs/operations/cross-repo-coordination.md). ✅ Initial draft complete (2026-04-28).
+Phase 0 deliverables — historical record. Phase 1 deliverables tracked in [docs/ROADMAP.md](docs/ROADMAP.md).
 
-## Projected Code Structure
+- **A.** ✅ Paper queue ([`docs/research/paper-queue.md`](docs/research/paper-queue.md)) — 71 verified entries (38 Area 1 / 33 Area 4); reading-30+ milestone moved to Phase 1 (decided 2026-05-03). The synthesis tying Areas to Vol. 1 / Vol. 2 design decisions becomes a Phase 1 prerequisite.
+- **B.** Vol. 1 FDA briefing MVA design doc — **Phase 1 deliverable, not Phase 0**. Gated on KG Phase 12.1 Golden Dataset Regression Suite (~July 2026). Task shape locked as Option I per [Special-Herbs#14 §13](https://github.com/jegriffi91/Special-Herbs/pull/14).
+- **C.** ✅ `special-herbs-formats` API ([docs/design/special-herbs-formats-api.md](docs/design/special-herbs-formats-api.md)) — design + literature triangulation ([docs/research/special-herbs-formats-design.md](docs/research/special-herbs-formats-design.md)) both complete.
+- **D.** ✅ KG migration plan + ADR-0003 boundary audit ([docs/operations/kg-migration-plan.md](docs/operations/kg-migration-plan.md)) — verdicts locked; migration executes post-KG-Phase-13.1.
+- **E.** ✅ Phase 0E scaffolding shipped ([Special-Herbs#10](https://github.com/jegriffi91/Special-Herbs/pull/10)): `src/special_herbs/{formats,release,observability,tape,plv,training,eval/{harness,backtest},ingest}/` package tree with real implementations in formats / release / observability / tape; 7 import-linter contracts encoding subsystem boundaries from [resilience design §2](docs/design/resilience-and-subsystem-isolation.md); ruff + bandit + pytest with 80% coverage gate; `--disable-socket` default; self-hosted CI runner (`[self-hosted, special-herbs]`); release workflow.
+- **F.** ✅ CLAUDE.md + [AGENTS.md](./AGENTS.md) + [docs/operations/cross-repo-coordination.md](docs/operations/cross-repo-coordination.md).
 
-When Vol. 1 begins (post-Phase-0):
+## Code Structure
+
+Phase 0E shipped the package skeleton. `src/special_herbs/` already contains formats / observability / release / tape / ingest / training / eval / plv subdirectories, with real implementations in formats / release / observability / tape and stubs in the rest. Phase 1 fills out the remaining pipelines:
 
 ```
 src/special_herbs/
-  ingest/        # substrate-side data ingestion (FDA PDFs, NOAA, etc.)
-  training/      # LoRA training pipeline (likely Unsloth-based)
-  eval/          # measurement harness (binds to KG Golden Dataset)
-  release/       # artifact release pipeline (manifest builder, signer)
-  formats/       # manifest schema + load utilities (companion-package
-                 #   precursor; published separately as
-                 #   special-herbs-formats once Vol. 1 ships)
+  ingest/        # substrate-side data ingestion (FDA PDFs, NOAA, etc.)        — stub (Phase 1)
+  training/      # LoRA training pipeline (likely Unsloth-based)               — stub (Phase 1)
+  eval/          # measurement harness (binds to KG Golden Dataset)            — stub (Phase 1)
+  release/       # artifact release pipeline (manifest builder, signer)        — implemented
+  formats/       # manifest schema + verification utilities                    — implemented
+                 #   (companion-package precursor; published separately as
+                 #    special-herbs-formats once Vol. 1 ships)
+  observability/ # structured event emission + assertions                      — implemented
+  tape/          # frontier-API call recording + freshness checks              — implemented
+  plv/           # Pre-Launch Validation gate orchestration                    — stub (Phase 1)
 tests/           # repo-root test directory
 docs/
   architecture/  # ADRs (append-only; supersede via new ADR)

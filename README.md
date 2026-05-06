@@ -6,7 +6,7 @@ Research substrate that produces versioned artifacts (LoRA adapters, knowledge g
 
 ## Status
 
-**Pre-Phase-0.** Repo scaffold only. No code work begins until the consumer system (King Geedorah) clears its Phase 10 settle gate (target 2026-05-10) and Phase 13.1 RLAIF Pipeline Validation lands (~late August 2026). Until then this repo holds design documents and ADRs.
+**Phase 0 exited 2026-05-05.** Repo holds ADRs, design documents, and Phase 0E scaffolding code (formats / observability / release / tape modules with tests + import-linter contracts + 80% coverage gate). Phase 1 (Vol. 1 design + build) is gated on the consumer system (King Geedorah) Phase 12.1 Golden Dataset Regression Suite (~July 2026) and Phase 13.1 RLAIF Pipeline Validation (~late August 2026); no Vol. 1 production code lands until both clear.
 
 ## What this is
 
@@ -72,8 +72,8 @@ flowchart TD
 
 See [docs/ROADMAP.md](docs/ROADMAP.md). High-level:
 
-- **Vol. 0 (Phase 0) — Preconditions.** KG settle gate + KG RLAIF Phase 13.1 validation + 30+ papers read. No code.
-- **Vol. 1 (Phase 1) — Area 1 MVA.** One fine-tuned LoRA on a single domain (FDA briefing docs). Loaded into KG's Gateway. Measured for ≥1.5% Brier reduction (Phase 2 escalation gate at ≥3%).
+- **Vol. 0 (Phase 0) — Preconditions.** ✅ Closed 2026-05-05. KG Phase 10 settle gate (operator override) + Phase 11.2 routing + Phase 14.0 dry-run; ADRs, design docs, and Phase 0E code scaffolding shipped. Paper-reading milestone moved to Phase 1.
+- **Vol. 1 (Phase 1) — Area 1 MVA.** One fine-tuned LoRA on FDA briefing documents (Option I — alternative Commander on raw pdfplumber chunks). Loaded into KG's Gateway. Measured for ≥1.5% Brier reduction (Phase 2 escalation gate at ≥3%). Gated on KG Phase 12.1 + 13.1.
 - **Vol. 2 (Phase 2) — Area 4 first artifact.** Conditional on Vol. 1 clearing the gate. Cross-venue correlation matrix.
 - **Vol. 3+ (Phase 3) — Depth.** Conditional. More domains, more adapters, broader correlation coverage.
 
