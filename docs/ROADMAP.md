@@ -124,9 +124,11 @@ Substrate moves from Phase 0 to Phase-1-design-on-deck. Vol. 1 design (deliverab
 
 ## Phase 2 — Vol. 2: Area 4 First Artifact (~3 months, conditional on Vol. 1)
 
-**Domain:** TBD — likely Polymarket weather contracts × NOAA forecasts (Polymarket read-only access approved per KG roadmap Decision #5; Polymarket trading remains banned). Or Kalshi macro contracts × CME futures lead-lag.
+**Domain:** Polymarket non-weather event contracts × Polygon equity tickers, paralleling KG's Phase 14A.1-3 pm-event-mapper data domain (KG PRs #140-#142 LIVE 2026-05-06). Per [ADR-0001](architecture/ADR-0001-substrate-as-artifact-contract.md) §4 substrate writes its own ingestion against the public Polymarket Gamma API; KG's `data/polymarket_event_mapper_log.db` is *not* the data source — see [`operations/cross-repo-coordination.md` §"Dynamic-Universe Overlay + Polymarket Mapper Pathway"](operations/cross-repo-coordination.md#dynamic-universe-overlay--polymarket-mapper-pathway) for the boundary. Kalshi macro × CME lead-lag remains a candidate for Vol. 3+ if Vol. 2 clears.
 
-**Deliverable:** pairwise correlation matrix between two venues. Surfaced as confidence-adjustment features for KG's `moat_kalshi_tail_risk_maker` strategy.
+**Deliverable:** pairwise correlation matrix / lead-lag analysis surfaced as confidence-adjustment features for the consuming KG strategy (initially `prediction_market_arb` per KG Phase 14A; `moat_kalshi_tail_risk_maker` deferred to Vol. 3+ on the same kill/escalate criterion).
+
+**Scope doc:** `docs/design/vol-2-area-4-data-consumption.md` once it lands — captures KG's pm-event-mapper data shape (LOG db schema), substrate's independent ingestion, Option I/II/III for Area 4, and gating on Vol. 1 clearance.
 
 **Decision gate:** same lift threshold (≥1.5% Brier reduction or equivalent IC delta on the consuming strategy). If only one of Areas 1 / 4 produces consumer value, the other is killed and the surviving area gets all further depth investment.
 
@@ -159,11 +161,12 @@ The substrate is self-justified by KG at this point; second-consumer investment 
 
 | Substrate Phase | Requires KG State |
 |---|---|
-| Phase 0 preconditions | KG Phase 10 settle + KG Phase 11.2 Strategy-Scoped Signal Routing landed |
-| Phase 1 (Vol. 1) | KG Phase 13.1 RLAIF Pipeline Validation passed |
-| Phase 1 measurement | KG Phase 12.1 Golden Dataset Regression Suite operational |
-| Phase 1 consumer integration | KG `moat_fda_equity_catalyst.yaml` deployed |
-| Phase 2 (Vol. 2) | KG Phase 14.0 prediction-market provider live (Kalshi-only for execution; Polymarket read-only for correlation research) |
+| Phase 0 preconditions | ✅ KG Phase 10 settle + Phase 11.2 routing + Phase 14.0 dry-run (all ticked 2026-05-05) |
+| Phase 1 (Vol. 1) | KG Phase 13.1 RLAIF Pipeline Validation passed (~late August 2026) |
+| Phase 1 measurement | KG Phase 12.1 Golden Dataset Regression Suite operational, per-strategy curator producing ≥50 examples (~July 2026) |
+| Phase 1 consumer integration | KG `moat_fda_equity_catalyst.yaml` deployed (Phase 14A; YAML name pending KG-side confirmation per [`operations/kg-migration-plan.md`](operations/kg-migration-plan.md) §7) |
+| Phase 2 (Vol. 2) data domain | ✅ KG Phase 14A.1-3 pm-event-mapper LIVE 2026-05-06 (KG PRs #140-#142). Substrate ingests Polymarket Gamma API independently per [ADR-0001](architecture/ADR-0001-substrate-as-artifact-contract.md) §4; KG LOG db is *not* a substrate input |
+| Phase 2 (Vol. 2) consumer integration | KG `prediction_market_arb.yaml` activated (Phase 14.0 — ✅ activated 2026-05-05, 22-day observation window through 2026-05-28) |
 
 ---
 
