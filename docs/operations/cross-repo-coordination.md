@@ -23,12 +23,16 @@ related-repos:
 
 Specific KG → Substrate unblocking events:
 
-| KG event | Unblocks substrate | Earliest expected |
+| KG event | Unblocks substrate | Status |
 |---|---|---|
-| Phase 10 settle gate clears | Phase 0 → can start design work | 2026-05-10 (rebased 2026-05-01 to 10 consecutive calendar days clean) |
-| Phase 11.2 Strategy-Scoped Signal Routing landed | Phase 0 exit precondition | ✅ shipped 2026-04-21 (KG commit `6f8906f`) |
-| Phase 12.1 Golden Dataset Regression Suite operational | Phase 0 deliverable B (Vol. 1 MVA design) can start | ~2026-07 |
-| Phase 13.1 RLAIF Pipeline Validation passes | Phase 1 (Vol. 1 build) can start | ~late 2026-08 |
+| Phase 10 settle gate clears | Phase 0 exit (precondition) | ✅ operator override 2026-05-05 (full rationale mirrored in [`../ROADMAP.md`](../ROADMAP.md) §"Phase 0 — Preconditions") |
+| Phase 11.2 Strategy-Scoped Signal Routing landed | Phase 0 exit (precondition) | ✅ shipped 2026-04-21 (KG commit `6f8906f`) |
+| Phase 14.0 non-schema infra in dry-run | Phase 0 exit (precondition) | ✅ KG PRs #18/#19/#21 merged 2026-04-26/27 |
+| Phase 11.4 + 14.0 strategy activation (22-day observation window) | Operational base for Vol. 2 (Area 4) | ✅ activated 2026-05-05; window D+0=2026-05-06 → D+22=2026-05-28 |
+| Phase 14A.1-3 pm-event-mapper chain LIVE (KG PRs #140-#142) | First labeled Polymarket→equity dataset starts accumulating in `data/polymarket_event_mapper_log.db` | ✅ daemon registered 2026-05-06 20:34 PT, first cron 20:45 PT; ~30-50 resolved events expected by mid-June. **Substrate Area 4 (Vol. 2) data domain — not data source** — see [Dynamic-Universe Overlay + Polymarket Mapper Pathway](#dynamic-universe-overlay--polymarket-mapper-pathway) below for the ADR-0001 §4 ingestion split. |
+| Dynamic-universe overlay cron live | Substrate Vol. N+ catalyst-class scoping must reason about overlay shape | ✅ overlays at `data/universe_overlays/<strategy>.json` are now a live contract (was preview-only); see pathway section below |
+| Phase 12.1 Golden Dataset Regression Suite operational (per-strategy curator, ≥50 examples) | Vol. 1 MVA design (deliverable B) can start; substrate's Brier-baseline measurement harness binds to curator output | ~July 2026 |
+| Phase 13.1 RLAIF Pipeline Validation passes | Phase 1 (Vol. 1 build) can start | ~late August 2026 |
 | Phase 14A `moat_fda_equity_catalyst.yaml` deployed | Vol. 1 has a live consumer | post-Vol. 1 release |
 
 ## Volume Design Phase: Lock the LoRA's Input + Output Contracts to the Consuming KG Strategy
@@ -54,6 +58,34 @@ Operator-driven handshake at the start of any Volume that ships a LoRA:
 This is **not** a runtime API per [ADR-0001](../architecture/ADR-0001-substrate-as-artifact-contract.md) §3. The shape is copied (not imported) into substrate's training pipeline; substrate does not query KG at training time, and KG's runtime does not depend on substrate. The handshake is operator-driven, design-time only.
 
 If the chosen Option requires KG-side infrastructure that doesn't yet exist (e.g., Option II against a catalyst class KG hasn't built a feature-extraction layer for), the Volume cannot enter training. The operator either (a) waits for KG to build it, (b) defers the Volume, (c) rescopes the Volume, or (d) picks a different Option that fits KG's actual current architecture.
+
+## Dynamic-Universe Overlay + Polymarket Mapper Pathway
+
+Two KG-side runtime data structures became live contracts on 2026-05-05/06 that any future Volume scoping a catalyst class against KG strategies must reason about. **Both are KG-internal runtime state. Substrate does NOT read either at training time** — that would violate [ADR-0001](../architecture/ADR-0001-substrate-as-artifact-contract.md) §3 (no runtime API) and [ADR-0001](../architecture/ADR-0001-substrate-as-artifact-contract.md) §4 (no shared databases). They are documented here so substrate-side Volume design accurately reflects KG's pipeline shape.
+
+### Universe overlays — `data/universe_overlays/<strategy>.json`
+
+KG's per-strategy dynamic-universe screener writes a daily overlay JSON file per strategy under `data/universe_overlays/`. Each file lists the tickers that strategy is permitted to trade on a given date, derived from the screener cron's output. The overlay shape is what the consuming strategy's listener actually sees at runtime — strategies declare a wide static `target_universe` in their YAML and narrow it via the live overlay.
+
+**Substrate-side implication for Volume design:**
+
+- A Volume targeting catalyst class X for strategy Y must check Y's overlay file shape at design time to confirm the catalyst-class universe Y actually trades on. A Volume that scopes its training corpus to tickers Y will never see in production is a wasted training cycle.
+- Overlay-shape changes are KG's call. Substrate-side Volume design does NOT pin against a specific overlay snapshot; the substrate trains on a universe-of-interest definition (sourced independently — see [ADR-0001](../architecture/ADR-0001-substrate-as-artifact-contract.md) §4) and trusts KG to apply the overlay at consumer-side ticker filtering.
+- The overlay JSON is operator-readable for sanity-check at design time. **It is not substrate runtime input** — substrate's training pipeline must not import a path to a KG overlay file.
+
+### Polymarket event-mapper LOG db — `data/polymarket_event_mapper_log.db`
+
+KG's Phase 14A.1-3 chain (PRs #140-#142, daemon `geedorah-pm-event-mapper` first cron 2026-05-06 20:45 PT) maps Polymarket events to equity ticker candidates via a Bodega-routed DSPy signature, gated by a cross-source evidence score (Polygon-universe-membership hallucination guard + non-HOLD decision_log activity + signal_log volume + source diversity in a 72-hour lookback). Every emission appends to `data/polymarket_event_mapper_log.db`.
+
+**This is the same data domain as substrate's Vol. 2 Area 4 cross-venue correlation matrix.** It is NOT, however, substrate's data source. Per [ADR-0001](../architecture/ADR-0001-substrate-as-artifact-contract.md) §4, "duplicate ingestion is the accepted cost; coupling cost is not." For Vol. 2 design:
+
+- Substrate writes its own Polymarket ingestion against the public Gamma API (or an equivalent public endpoint), independent of KG's ingest stack.
+- Substrate writes its own event→equity mapping pipeline. The pipeline may converge on a similar architecture to KG's pm-event-mapper (a DSPy-style signature with a hallucination guard, etc.) without sharing code; per [ADR-0003](../architecture/ADR-0003-training-and-schedule-ownership.md) §3, recipe sharing goes through a third package only when both projects already independently want it.
+- KG's LOG db is operator-readable as a cross-validation reference at design time (compare substrate's mapper outputs against KG's, sanity-check rejection-rate parity). **It is not substrate runtime or training-time input.**
+
+The mid-June ~30-50 resolved-event milestone in KG's LOG db is therefore a *KG-side* milestone. Substrate's own Vol. 2 first-data milestone is downstream of substrate's own ingestion pipeline, which has not yet been written.
+
+Vol. 2 design (the formal scoping doc) lives at `docs/design/vol-2-area-4-data-consumption.md` once that file lands. That doc captures the substrate-side ingestion shape, the Option I/II/III choice for Area 4, and the conditional gating on Vol. 1 clearing its Brier gate.
 
 ## When the Substrate Releases a Volume
 
